@@ -1,0 +1,2 @@
+class TEC(object):
+  pass
