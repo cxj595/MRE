@@ -43,6 +43,13 @@ class RuleLib(object):
     'floor1': [(0,0), (1,0), (2,0), (2,1), (2,2)],
     'floor2': [(0,1), (1,1), (1,2)],
     'floor3': [(0,2)],
+
+    'r0': [(0,j) for j in range(3)],
+    'r1': [(1,j) for j in range(3)],
+    'r2': [(2,j) for j in range(3)],
+    'c0': [(i, 0) for i in range(3)],
+    'c1': [(i, 1) for i in range(3)],
+    'c2': [(i, 2) for i in range(3)],
     'all': [(i,j) for i in range(3) for j in range(3)]
   }
 
@@ -68,7 +75,7 @@ class RuleLib(object):
     Function: Parse & Add AR/RR
     Input: newRules[
       {
-        'class': 'RC'(Row/Col), 'AFloor'(Absulote FLoor), 'Adjacent', 'RFloor'(Relative Floor)
+        'class': 'RC'(Row/Col), 'SameRC', 'AFloor'(Absulote FLoor), 'Adjacent', 'RFloor'(Relative Floor)
         'types': [], 1 or 2 animals
         'param': [], defined by class
       }
@@ -156,8 +163,77 @@ class RuleLib(object):
           self.AR[rr['TypeB']]['possibleSet'] &= aNAdj
       
       elif rr['class'] == 'RFloor':
-        getFloor = lambda ij: 
-        getPossibleFLoors = lambda dots: 
+        if rr['param'] == 0: #SameFloor
+          getFloor = lambda ij: set([3]) if (ij==(0,2)) else set([2]) if (ij==(0,1) or ij==(1,1) or ij==(1,2)) else set([1])
+          getPossibleFLoors = lambda ARType: reduce((lambda s,f: s|f), [getFloor(p) for p in self.AR[ARType]['possibleFloors']])
+
+          aFloors = getPossibleFLoors(rr['TypeA'])
+          bFloors = getPossibleFLoors(rr['TypeB'])
+          exceptFloor = set([1,2,3]) - (aFloors & bFloors)
+
+          for f in exceptFloor:
+            self.addRules([
+              {'class': 'AFloor', 'types': [rr['TypeA']], 'param': '-floor' + f}, 
+              {'class': 'AFloor', 'types': [rr['TypeB']], 'param': '-floor' + f},
+            ])
+
+        elif rr['param'] == 1: # A Higher than B
+          self.addRules([
+            {'class': 'AFloor', 'types': [rr['TypeA']], 'param': '-floor1'}, 
+            {'class': 'AFloor', 'types': [rr['TypeB']], 'param': '-floor3'}, 
+          ])
+        
+        else:
+          raise(RuntimeError('Invalid Rule'))
+      
+      elif rr['class'] == 'SameRC':
+        getRows = lambda dots: reduce(lambda acc,row: acc|row, [set([ij[0]]) for ij in dots])
+        getCols = lambda dots: reduce(lambda acc,col: acc|col, [set([ij[1]]) for ij in dots])
+
+        aRows = getRows(self.AR[rr['TypeA']['possibleSet']])
+        bRows = getRows(self.AR[rr['TypeB']['possibleSet']])
+        aCols = getCols(self.AR[rr['TypeA']['possibleSet']])
+        bCols = getCols(self.AR[rr['TypeB']['possibleSet']])
+        
+        if rr['param'] == True: #SameRC
+          commonRows = aRows & bRows
+          commonCols = aCols & bCols
+
+          for i in commonRows:
+            self.addRules([
+              {'class': 'RC', 'types': [rr['TypeA']], 'param': 'r'+ i},
+              {'class': 'RC', 'types': [rr['TypeB']], 'param': 'r'+ i},
+            ])
+          
+          for j in commonCols:
+            self.addRules([
+              {'class': 'RC', 'types': [rr['TypeA']], 'param': 'c'+ j},
+              {'class': 'RC', 'types': [rr['TypeB']], 'param': 'c'+ j},
+            ])
+        
+        else: #DiffRC
+          if len(aRows) == 1 ^ len(bRows) == 1: # 当其中一个的行/列惟一，且另一个不唯一，可以将其从另一类中减去，下同；否则不能减去
+            multiRowType = rr['TypeA'] if len(bRows) == 1 else rr['TypeB']
+            oneRowNum = aRows.pop() if len(aRows) == 1 else bRows.pop()
+            self.addRules(
+              {'class': 'RC', 'types': [multiRowType], 'param': '-r'+ oneRowNum}
+            )
+            
+          if len(aCols) == 1 ^ len(bCols) == 1:
+            multiColType = rr['TypeA'] if len(bCols) == 1 else rr['TypeB']
+            oneColNum = aCols.pop() if len(aRows) == 1 else bCols.pop()
+            self.addRules(
+              {'class': 'RC', 'types': [multiColType], 'param': '-c'+ oneColNum}
+            )
+
+
+
+
+
+        
+          
+
+
     # RR关联分析
 
 
