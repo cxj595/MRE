@@ -218,7 +218,7 @@ class RuleLib(object):
             self.addRules(
               {'class': 'RC', 'types': [multiRowType], 'param': '-r'+ oneRowNum}
             )
-            
+
           if len(aCols) == 1 ^ len(bCols) == 1:
             multiColType = rr['TypeA'] if len(bCols) == 1 else rr['TypeB']
             oneColNum = aCols.pop() if len(aRows) == 1 else bCols.pop()
@@ -226,15 +226,6 @@ class RuleLib(object):
               {'class': 'RC', 'types': [multiColType], 'param': '-c'+ oneColNum}
             )
 
-
-
-
-
-        
-          
-
-
-    # RR关联分析
 
 
         
