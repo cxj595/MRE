@@ -3,8 +3,13 @@
 # @Date  : 2018-11-13
 
 import math
-from scipy.special import comb
+import numpy
+import scipy.special as ss
 from functools import reduce
+from Map import Map
+
+class RuleError(RuntimeError):
+  pass
 
 class RuleLib(object):
   '''
@@ -70,7 +75,11 @@ class RuleLib(object):
             subset = set(RuleLib.AR_TABLE['all']) - set(RuleLib.AR_TABLE[param[1:]])
           else: #指定
             subset = set(RuleLib.AR_TABLE[param])
-          self.AR[thisType]['possibleSet'] &= subset
+          
+          if len(self.AR[thisType]['possibleSet'] & subset) >= self.AR[thisType]['amount']: # Possible grids enough
+            self.AR[thisType]['possibleSet'] &= subset
+          else: #Possible grids not enough
+            raise RuleError('RuleError: Possible grids for' + thisType +'not enough.')
 
       elif rule['class'] == 'Adjacent' or rule['class'] == 'RFloor' or rule['class'] == 'SameRC':
         newRR = {}
@@ -84,22 +93,23 @@ class RuleLib(object):
         
         self.RR.append(newRR)
 
-  def chooseRule(self):
+  def chooseRule(self, currentMap):
     entropy = math.inf
     remains = [i for i in self.AR.values()['amount']]
 
     for thisType, value in self.AR.items():
       thisAmount = value['amount']
-      thisPossible = len(value['possibleSet'])
-      if thisAmount > thisPossible:
-        raise ValueError('More' + thisType + 'than possible grids! ')
-      elif thisAmount == thisPossible: # CAR
+      thisPossible = len(value['possibleSet'] & currentMap.getEmpty())
+
+      if thisAmount == thisPossible: # CAR
         return {thisType: self.AR[thisType]}
-      else: # UAR
-        thisEntropy = comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
+      elif thisAmount < thisPossible: # UAR
+        thisEntropy = ss.comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
         if thisEntropy < entropy:
           entropy = thisEntropy
           finalResult = thisType    
+      else: # Grids underflow
+        raise RuleError('RuleError: Possible grids for' + thisType +'not enough.')
     
     return {finalResult: self.AR[finalResult]}
   

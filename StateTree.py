@@ -6,6 +6,8 @@
 # from pprint import pprint as pt
 # import matplotlib.pyplot as plt
 
+from Map import Map
+import itertools
 
 class StateNode(object):
     '''
@@ -39,8 +41,23 @@ class StateTree(object):
         self.root = root
 
     def branch(self, currentNode, ARType):
-        applyingAR = currentNode.state['AR']['ARType']
+        '''
+        Funtion: create new branch when UAR
+        Input: currentNode(applying UAR), ARType(lead to UAR)
+        **Attention**: Must be UAR
+        '''
+
+        applyingAR = currentNode.state['AR'][ARType]
         thisMap = currentNode.state['map']
+        toSelect = applyingAR['possibleSet'] & thisMap.getEmpty()
+        toSelectAmount = len(toSelect)
+        animalAmount = applyingAR['amount']
+
+
+
+
+
+
         
 
     

@@ -2,8 +2,9 @@
 # @Author: Mio Xie
 # @Date  : 2018-11-13
 
-from RuleLibrary import RuleLib
 import unittest
+from RuleLibrary import RuleLib
+from RuleLibrary import RuleError
 
 class TestRuleLib(unittest.TestCase):
   def testInit(self):
@@ -61,3 +62,27 @@ class TestRuleLib(unittest.TestCase):
 
     self.assertEqual(expectForRight[0], RL.RR[0])
     self.assertEqual(expectForRight[1], RL.RR[1])
+  
+  def testARGridUnderflow(self):
+    initRules = [
+      {'type': 'tiger', 'amount': 1},
+      {'type': 'panda', 'amount': 3},
+      {'type': 'hippo', 'amount': 5},
+    ]
+    RL = RuleLib(initRules)
+    addedRules = [
+      {'class': 'AFloor', 'types': ['tiger'], 'param': ['floor3']},
+      {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
+      {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
+    ]
+    RL.addRules(addedRules)
+    tigerExpect = {'amount': 1, 'possibleSet': set([(3,3)])}
+    hippoExpect = {'amount': 5, 'possibleSet': set([(2,3), (3,2), (2,2)])}
+    pandaExpect = {'amount': 3, 'possibleSet': set([(1,1), (1,2), (1,3), (2,1), (3,1)])}
+
+    self.assertEqual([tigerExpect, hippoExpect, pandaExpect], RL.AR)
+    self.assertRaises(RuleError, RL.addRules, [{'class': 'RC', 'types': ['tiger'], 'param': ['lemon']}])
+    pass
+
+  def testChooseRule(self):
+    pass
