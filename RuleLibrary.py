@@ -3,8 +3,6 @@
 # @Date  : 2018-11-13
 
 import math
-import numpy
-import scipy.special as ss
 from functools import reduce
 from Map import Map
 
@@ -39,6 +37,10 @@ class RuleLib(object):
     'floor3': [(3,3)],
     'all': [(x,y) for x in range(1,4) for y in range(1,4)]
   }
+
+  @staticmethod
+  def __comb(N, k):
+      return math.factorial(N) / (math.factorial(N-k) * math.factorial(k))
 
   def __init__(self, Animals):
     '''
@@ -104,7 +106,7 @@ class RuleLib(object):
       if thisAmount == thisPossible: # CAR
         return {thisType: self.AR[thisType]}
       elif thisAmount < thisPossible: # UAR
-        thisEntropy = ss.comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
+        thisEntropy = RuleLib.__comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
         if thisEntropy < entropy:
           entropy = thisEntropy
           finalResult = thisType    

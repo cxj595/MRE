@@ -107,3 +107,6 @@ venv.bak/
 .noseids
 .noseids
 /.vs
+MRE.pyproj
+MRE.sln
+MRE.pyproj
