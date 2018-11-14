@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# @Author: Mio Xie
+# @Date  : 2018-11-13
+
 from RuleLibrary import RuleLib
 import unittest
 

@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# @Author: Mio Xie
+# @Date  : 2018-11-13
+
 import math
 from scipy.special import comb
 from functools import reduce
@@ -89,16 +93,15 @@ class RuleLib(object):
       thisPossible = len(value['possibleSet'])
       if thisAmount > thisPossible:
         raise ValueError('More' + thisType + 'than possible grids! ')
-        return None
       elif thisAmount == thisPossible: # CAR
-        return thisType
+        return {thisType: self.AR[thisType]}
       else: # UAR
         thisEntropy = comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
         if thisEntropy < entropy:
           entropy = thisEntropy
           finalResult = thisType    
     
-    return finalResult
+    return {finalResult: self.AR[finalResult]}
   
   def simplifyLib(self):
     pass
