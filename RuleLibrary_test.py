@@ -3,7 +3,6 @@
 # @Date  : 2018-11-13
 
 from RuleLibrary import RuleLib
-from RuleLibrary import RuleError
 from nose.tools import raises
 
 
@@ -15,9 +14,9 @@ def test_Init():
   ]
   RL = RuleLib(rules)
   expect = {
-    'tiger': {'amount': 2, 'possibleSet': set(RuleLib.AR_TABLE['all'])},
-    'panda': {'amount': 3, 'possibleSet': set(RuleLib.AR_TABLE['all'])},
-    'hippo': {'amount': 4, 'possibleSet': set(RuleLib.AR_TABLE['all'])},
+    'tiger': {'amount': 2, 'possibleSet': set(RL.AR_TABLE['all'])},
+    'panda': {'amount': 3, 'possibleSet': set(RL.AR_TABLE['all'])},
+    'hippo': {'amount': 4, 'possibleSet': set(RL.AR_TABLE['all'])},
   }
   assert expect == RL.AR
 
@@ -33,10 +32,11 @@ def test_AbsoluteRule():
     {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
     {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
   ]
+
   RL.addRules(addedRules)
-  tigerExpect = {'amount': 1, 'possibleSet': set([(3,3)])}
-  hippoExpect = {'amount': 5, 'possibleSet': set([(1,1), (1,2), (1,3), (2,1), (3,1)])}
-  pandaExpect = {'amount': 3, 'possibleSet': set([(2,3), (3,2), (2,2)])}
+  tigerExpect = {'amount': 1, 'possibleSet': set([(0,2)])}
+  hippoExpect = {'amount': 5, 'possibleSet': set([(0,0), (1,0), (2,0), (2,1), (2,2)])}
+  pandaExpect = {'amount': 3, 'possibleSet': set([(0,1), (1,1), (1,2)])}
 
   assert tigerExpect == RL.AR['tiger']
   assert hippoExpect == RL.AR['hippo']
@@ -61,23 +61,3 @@ def test_RelativeRules():
   ]
 
   assert expectForRight == RL.RR
-
-@raises(RuleError)
-def test_ARGridUnderflow():
-  initRules = [
-    {'type': 'tiger', 'amount': 1},
-    {'type': 'panda', 'amount': 3},
-    {'type': 'hippo', 'amount': 5},
-  ]
-  RL = RuleLib(initRules)
-  addedRules = [
-    {'class': 'AFloor', 'types': ['tiger'], 'param': ['floor3']},
-    {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
-    {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
-  ]
-  RL.addRules(addedRules)
-  
-  RL.addRules([{'class': 'RC', 'types': ['tiger'], 'param': ['lemon']}])
-
-def testChooseRule():
-  pass
