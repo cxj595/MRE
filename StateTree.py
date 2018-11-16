@@ -119,11 +119,11 @@ class StateTree(object):
             thisState = possibleStateQueue.get()
             thisState['rules'].simplifyRules()
             ARTypeToImplement = thisState['rules'].chooseRule()
-            
-            thisState.energy += thisState['rules'].TECAcc
-            thisState['rules'].TECAcc = 0
-
             nextNodes = self.implementAR(thisState, ARTypeToImplement)
+
+            thisState.energy += thisState['rules'].TECAcc # 规则化简 + 选择规则 + 规则应用的能量
+            thisState['rules'].TECAcc = 0 
+            
             for node in nextNodes:
                 if node.solved == True:
                     solutionCount += 1

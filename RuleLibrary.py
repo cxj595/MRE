@@ -118,7 +118,7 @@ class RuleLib(object):
 
 
   def chooseRule(self, currentMap):
-    self.TECAcc = TEC.BaseTEC([{'op': 'chooseAR', 'amount': len(self.AR)}])
+    self.TECAcc += TEC.BaseTEC([{'op': 'chooseAR', 'amount': len(self.AR)}])
 
     entropy = math.inf
     remains = [i for i in self.AR.values()['amount']]
@@ -139,6 +139,7 @@ class RuleLib(object):
   
 
   def removeOccupied(self, mapUpdated):
+    #清理所需的能量已经在Map应用中加过
     emptySet = mapUpdated.getEmpty()
     for ar in self.AR.values():
       ar['possibleSet'] &= emptySet
@@ -147,6 +148,12 @@ class RuleLib(object):
   def simplifyLib(self, mapUpdated):
     self.removeOccupied(mapUpdated)
     for rr in self.RR:
+      self.TECAcc += TEC.BaseTEC([
+        {'op': 'readRR'}, 
+        {'op': 'get2AnimalsOfRR'}, 
+        2 * {'op': 'findARFromRR', 'amount' = len(self.AR)},
+        2 * {'op': 'getARArea'}])
+
       if rr['class'] == 'Adjacent':
         getAdjSet = lambda ij : \
         set(list(filter(lambda xy: 0<=xy[0] and xy[0]<=2 and 0<=xy[1] and xy[1]<=2, \
