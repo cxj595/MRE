@@ -12,6 +12,8 @@ import copy
 import misc
 from random import choice
 from queue import Queue
+from ThinkingEnergyCost import TEC
+
 
 class StateNode(object):
     '''
@@ -27,21 +29,21 @@ class StateNode(object):
         由StateTree操作数据
     '''
 
-    def __init__(self, state, id = [], energy = 0, parent = None):
+    def __init__(self, state, id=[], energy=0, parent=None):
         self.state = state
         self.id = []
         self.children = []
         self.parent = None
         self.energy = energy
         self.solved = False
-    
-    def outputRusult(self, solutionOrder = 0):
-        print('-'*5 + 'Solution' + solutionOrder if solutionOrder != 0 else '' + '-'*5)
+
+    def outputRusult(self, solutionOrder=0):
+        print('-'*5 + 'Solution' +
+              solutionOrder if solutionOrder != 0 else '' + '-'*5)
         print()
         print('TEC: ' + self.energy)
         self.state['map'].outputMap()
         print('\n\n')
-
 
 
 class StateTree(object):
@@ -56,10 +58,8 @@ class StateTree(object):
         solve(self)
     '''
 
-
     def __init__(self, root):
         self.root = root
-
 
     def addStateChilds(self, currentNode, toSelect, ARType, amount):
         '''
@@ -68,14 +68,14 @@ class StateTree(object):
         **Attention**: Must be UAR
         '''
 
-        branchSets = list(combinations(toSelect, amount)) # Genernate full-comb of branch subsets as [subset_1, ...]
-        for i in range(misc.comb(len(toSelect), amount)): #C(available, need)
+        # Genernate full-comb of branch subsets as [subset_1, ...]
+        branchSets = list(combinations(toSelect, amount))
+        for i in range(misc.comb(len(toSelect), amount)):  # C(available, need)
             newState = copy.deepcopy(currentNode.state)
-            newState['map'].implement(ARType, branchSets.pop()) # 写地图
-            sn = StateNode(newState, currentNode.id.append(i), currentNode) # 建节点，note：id里包含了次序 
-                            #TO-DO: 继承Energy
-            currentNode.children.append(sn) # 加子节点
-
+            newState['map'].implement(ARType, branchSets.pop())  # 写地图
+            sn = StateNode(newState, currentNode.id.append(
+                i), currentNode.energy, currentNode)  # 建节点，note：id里包含了次序
+            currentNode.children.append(sn)  # 加子节点
 
     def implementAR(self, targetNode, ARType):
         '''
@@ -83,36 +83,46 @@ class StateTree(object):
         Input: targetNode: StateNode, ARType: string
         Output: Possible State(s), for CAR/ UAR
         '''
-        
+
         applyingAR = targetNode.state['rules'].AR[ARType]
         thisMap = targetNode.state['map']
         toSelect = applyingAR['possibleSet'] & thisMap.getEmpty()
 
-        if applyingAR['possibleSet'] == toSelect: #CAR
+        if applyingAR['possibleSet'] == toSelect:  # CAR
+
+            targetNode.energy += TEC.BaseTEC([
+                {'op': 'clearOccupiedGrids',
+                 'size': len(applyingAR['possibleSet']),
+                 'ARAmout': len(targetNode.state['rules'].AR) - 1}
+            ])  # 叠加写地图、清格子的能量（提前）
+
             targetNode.state['map'].implement(ARType, toSelect)
-            if targetNode.state['map'].getEmpty == set(): #出现一个解
+            if targetNode.state['map'].getEmpty == set():  # 出现一个解
                 targetNode.solved = True
 
-            targetNode.state['rules'].AR.pop(ARType) # 删除应用完的AR
+            targetNode.state['rules'].AR.pop(ARType)  # 删除应用完的AR
             return [targetNode]
-        elif applyingAR['possibleSet'] < toSelect: #UAR
+        elif applyingAR['possibleSet'] < toSelect:  # UAR
             animalAmount = applyingAR['amount']
-            targetNode.state['rules'].AR.pop(ARType) # 删除应用完的AR
+            targetNode.state['rules'].AR.pop(ARType)  # 删除应用完的AR
             self.addStateChilds(targetNode, toSelect, ARType, animalAmount)
             return targetNode.children
-        else: # Grids not enough <=> no solution
+        else:  # Grids not enough <=> no solution
             targetNode.state = None
-
 
     def solve(self):
         possibleStateQueue = Queue()
         possibleStateQueue.put(self.root)
         solutionCount = 0
-        
+
         while possibleStateQueue.empty() == False:
             thisState = possibleStateQueue.get()
             thisState['rules'].simplifyRules()
             ARTypeToImplement = thisState['rules'].chooseRule()
+            
+            thisState.energy += thisState['rules'].TECAcc
+            thisState['rules'].TECAcc = 0
+
             nextNodes = self.implementAR(thisState, ARTypeToImplement)
             for node in nextNodes:
                 if node.solved == True:
@@ -120,7 +130,6 @@ class StateTree(object):
                     node.outputRusult(solutionCount)
                 else:
                     possibleStateQueue.put(node)
-        
+
         if solutionCount == 0:
             print('-'*5 + 'No solution' + '-'*5)
-        

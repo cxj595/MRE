@@ -6,6 +6,7 @@ import math
 import misc
 from functools import reduce
 from Map import Map
+from ThinkingEnergyCost import TEC
 
 
 class RuleLib(object):
@@ -81,21 +82,29 @@ class RuleLib(object):
       }
     ]
     '''
+
+    self.TECAcc = 0
+
     for rule in newRules:
       if rule['class'] == 'RC' or rule['class'] == 'AFloor':
+        self.TECAcc += TEC.BaseTEC([{'op': 'readAR'}])
         thisType = rule['types'][0]
         for param in rule['param']:
           if param[0] == '-':
+            self.TECAcc += TEC.BaseTEC([{'op': 'readNFruit' if rule['class'] == 'RC' else 'readNFloor'}])
             subset = set(RuleLib.AR_TABLE['all']) - set(RuleLib.AR_TABLE[param[1:]])
           else: #指定
+            self.TECAcc += TEC.BaseTEC([{'op': 'readFruit' if rule['class'] == 'RC' else 'readFloor'}])
             subset = set(RuleLib.AR_TABLE[param])
           
           if len(self.AR[thisType]['possibleSet'] & subset) >= self.AR[thisType]['amount']: # Possible grids enough
             self.AR[thisType]['possibleSet'] &= subset
+            self.TECAcc += TEC.BaseTEC([{'op': 'intersectAR', 'size': len(subset)}])
           else: #Possible grids not enough
             raise RuntimeError('RuleError: Possible grids for' + thisType +'not enough.')
 
       elif rule['class'] == 'Adjacent' or rule['class'] == 'RFloor' or rule['class'] == 'SameRC':
+        self.TECAcc += TEC.BaseTEC([{'op': 'readRR'}])
         newRR = {}
         newRR['class'] = rule['class']
         newRR['typeA'] = rule['types'][0]
@@ -109,6 +118,8 @@ class RuleLib(object):
 
 
   def chooseRule(self, currentMap):
+    self.TECAcc = TEC.BaseTEC([{'op': 'chooseAR', 'amount': len(self.AR)}])
+
     entropy = math.inf
     remains = [i for i in self.AR.values()['amount']]
 
@@ -142,25 +153,24 @@ class RuleLib(object):
         [(ij[0]-1,ij[1]),(ij[0]+1, ij[1]), (ij[0],ij[1]-1), (ij[0],ij[1]+1)]))) # Get the Adjacent set of a point
 
         if rr['param'] == True: #Adjacent
-          aAdj = bAdj = set()
+          aPossibleAdj = bPossibleAdj = set()
           for pa in self.AR[rr['TypeA']]['possibleSet']:
-            aAdj |= getAdjSet(pa)
+            aPossibleAdj |= getAdjSet(pa)
           for pb in self.AR[rr['TypeB']]['possibleSet']:
-            bAdj |= getAdjSet(pb)
+            bPossibleAdj |= getAdjSet(pb)
           
-          self.AR[rr['TypeA']]['possibleSet'] &= bAdj
-          self.AR[rr['TypeB']]['possibleSet'] &= aAdj
+          self.AR[rr['TypeA']]['possibleSet'] &= bPossibleAdj
+          self.AR[rr['TypeB']]['possibleSet'] &= aPossibleAdj
 
         elif rr['param'] == False: #Not Adjacent
-          aNAdj = bNAdj = set(self.AR_TABLE['all'])
+          aCommonAdj = bCommonAdj = set(self.AR_TABLE['all'])
           for pa in self.AR[rr['TypeA']]['possibleSet']:
-            aNAdj -= getAdjSet(pa)
-          bAdj = set()
+            aCommonAdj &= getAdjSet(pa)
           for pb in self.AR[rr['TypeB']]['possibleSet']:
-            bNAdj -= getAdjSet(pb)
+            bCommonAdj &= getAdjSet(pb)
 
-          self.AR[rr['TypeA']]['possibleSet'] &= bNAdj
-          self.AR[rr['TypeB']]['possibleSet'] &= aNAdj
+          self.AR[rr['TypeA']]['possibleSet'] &= (set(self.AR_TABLE['all']) - aCommonAdj)
+          self.AR[rr['TypeB']]['possibleSet'] &= (set(self.AR_TABLE['all']) - bCommonAdj)
       
       elif rr['class'] == 'RFloor':
         if rr['param'] == 0: #SameFloor
