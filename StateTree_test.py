@@ -20,12 +20,31 @@ class Test_Node(object):
     ]
     RL.addRules(addedRules)
     
-    root = StateNode({'map':m, 'AR': RL.AR, 'RR': RL.RR})
+    root = StateNode({'map': m, 'rules': RL})
     assert root.id == []
     assert root.parent == None
     assert root.children == []
-    assert root.state == ()
+    assert root.state['rules'].AR['panda']['possibleSet'] == set(RuleLib.AR_TABLE['floor2'])
 
     
-  pass
+class Test_Tree(object):
+  def test_solve_blackBox(self):
+    m = Map()
+    initRules = [
+      {'type': 'tiger', 'amount': 1},
+      {'type': 'panda', 'amount': 3},
+      {'type': 'hippo', 'amount': 5},
+    ]
+    RL = RuleLib(initRules)
+    addedRules = [
+      {'class': 'AFloor', 'types': ['tiger'], 'param': ['floor3']},
+      {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
+      {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
+    ]
+    RL.addRules(addedRules)
+    
+    root = StateNode({'map': m, 'rules': RL}, id=[], energy=RL.TECAcc)
+    
+    tree = StateTree(root)
+    tree.solve()
 

@@ -24,6 +24,7 @@ class RuleLib(object):
         'param' : (optional) A-B
       }
     ]
+    logger = StateNode.logger
 
     Funtions:
     __init__()
@@ -69,6 +70,7 @@ class RuleLib(object):
       self.AR[a['type']] = {}
       self.AR[a['type']]['amount'] = a['amount']
       self.AR[a['type']]['possibleSet'] = set(RuleLib.AR_TABLE['all']) # Full grids
+    self.logger = None # 与节点链接后由节点提供
    
 
   def addRules(self, newRules):
@@ -83,32 +85,34 @@ class RuleLib(object):
     ]
     '''
 
-    self.TECAcc = 0
-
     for rule in newRules:
       if rule['class'] == 'RC' or rule['class'] == 'AFloor':
-        self.TECAcc += TEC.BaseTEC([{'op': 'readAR'}])
+        self.logger += [{'op': 'readAR'}]
+
         thisType = rule['types'][0]
         for param in rule['param']:
-          if param[0] == '-':
-            self.TECAcc += TEC.BaseTEC([{'op': 'readNFruit' if rule['class'] == 'RC' else 'readNFloor'}])
+          if param[0] == '-': #排除
             subset = set(RuleLib.AR_TABLE['all']) - set(RuleLib.AR_TABLE[param[1:]])
+            self.logger += [{'op': 'readNFruit' if rule['class'] == 'RC' else 'readNFloor'}]
+
           else: #指定
-            self.TECAcc += TEC.BaseTEC([{'op': 'readFruit' if rule['class'] == 'RC' else 'readFloor'}])
             subset = set(RuleLib.AR_TABLE[param])
-          
+            self.logger += [{'op': 'readFruit' if rule['class'] == 'RC' else 'readFloor'}]
+
           if len(self.AR[thisType]['possibleSet'] & subset) >= self.AR[thisType]['amount']: # Possible grids enough
             self.AR[thisType]['possibleSet'] &= subset
-            self.TECAcc += TEC.BaseTEC([{'op': 'intersectAR', 'size': len(subset)}])
+            self.logger += [{'op': 'intersectAR', 'size': len(subset)}] # 公共AR操作
           else: #Possible grids not enough
             raise RuntimeError('RuleError: Possible grids for' + thisType +'not enough.')
 
       elif rule['class'] == 'Adjacent' or rule['class'] == 'RFloor' or rule['class'] == 'SameRC':
-        self.TECAcc += TEC.BaseTEC([{'op': 'readRR'}])
+        self.logger += [{'op': 'readRR'}]
+
         newRR = {}
         newRR['class'] = rule['class']
         newRR['typeA'] = rule['types'][0]
         newRR['typeB'] = rule['types'][1]
+
         if rule['class'] == 'RFloor':
           newRR['param'] = rule['param'] #相对高度 A-B
         else: # Adjacent or SameRC
@@ -118,7 +122,7 @@ class RuleLib(object):
 
 
   def chooseRule(self, currentMap):
-    self.TECAcc += TEC.BaseTEC([{'op': 'chooseAR', 'amount': len(self.AR)}])
+    self.logger += [{'op': 'chooseAR', 'amount': len(self.AR)}]
 
     entropy = math.inf
     remains = [i for i in self.AR.values()['amount']]
@@ -130,29 +134,33 @@ class RuleLib(object):
       if thisAmount == thisPossible: # CAR
         return thisType
       elif thisAmount < thisPossible: # UAR
-        thisEntropy = misc.comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
+        thisEntropy = misc.comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) \
+                                 / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
         if thisEntropy < entropy:
           entropy = thisEntropy
-          finalResult = thisType
+          resultType = thisType
 
-    return finalResult
+    return resultType
   
 
   def removeOccupied(self, mapUpdated):
-    #清理所需的能量已经在Map应用中加过
+    #清理所需的能量在StateTree.implement()中提前加过, 因为该能量与待使用AR的格子数有关，此时已经删除
     emptySet = mapUpdated.getEmpty()
     for ar in self.AR.values():
       ar['possibleSet'] &= emptySet
   
 
-  def simplifyLib(self, mapUpdated):
+  def simplifyLib(self, mapUpdated): # 本函数中与AR有关的能量消耗，在addRules()中计算，此处只计算与RR相关的能量
     self.removeOccupied(mapUpdated)
+
     for rr in self.RR:
-      self.TECAcc += TEC.BaseTEC([
+      self.logger += [  
         {'op': 'readRR'}, 
-        {'op': 'get2AnimalsOfRR'}, 
-        2 * {'op': 'findARFromRR', 'amount' = len(self.AR)},
-        2 * {'op': 'getARArea'}])
+        {'op': 'get2AnimalsOfRR'}
+        ] + 2 * [ # 有两个RR，故乘以2
+        {'op': 'findARFromRR', 'amount': len(self.AR)},
+        {'op': 'getARArea'}
+        ] # 共同预处理
 
       if rr['class'] == 'Adjacent':
         getAdjSet = lambda ij : \
@@ -169,6 +177,11 @@ class RuleLib(object):
           self.AR[rr['TypeA']]['possibleSet'] &= bPossibleAdj
           self.AR[rr['TypeB']]['possibleSet'] &= aPossibleAdj
 
+          self.logger += [
+            {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['TypeA']]['possibleSet']))},
+            {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['TypeB']]['possibleSet']))},
+          ]
+
         elif rr['param'] == False: #Not Adjacent
           aCommonAdj = bCommonAdj = set(self.AR_TABLE['all'])
           for pa in self.AR[rr['TypeA']]['possibleSet']:
@@ -178,6 +191,14 @@ class RuleLib(object):
 
           self.AR[rr['TypeA']]['possibleSet'] &= (set(self.AR_TABLE['all']) - aCommonAdj)
           self.AR[rr['TypeB']]['possibleSet'] &= (set(self.AR_TABLE['all']) - bCommonAdj)
+
+          self.logger += [
+            {'op': 'getCommonAdj', 'size': len(self.AR[rr['TypeA']]['possibleSet'])},
+            {'op': 'getComplement'},
+            {'op': 'getCommonAdj', 'size': len(self.AR[rr['TypeB']]['possibleSet'])},
+            {'op': 'getComplement'},
+          ]
+
       
       elif rr['class'] == 'RFloor':
         if rr['param'] == 0: #SameFloor
@@ -186,9 +207,10 @@ class RuleLib(object):
 
           aFloors = getPossibleFLoors(rr['TypeA'])
           bFloors = getPossibleFLoors(rr['TypeB'])
-          exceptFloor = set([1,2,3]) - (aFloors & bFloors)
+          exceptFloors = set([1,2,3]) - (aFloors & bFloors)
+          self.logger += [{'op': 'getFloor'}] * 2
 
-          for f in exceptFloor:
+          for f in exceptFloors:
             self.addRules([
               {'class': 'AFloor', 'types': [rr['TypeA']], 'param': '-floor' + f}, 
               {'class': 'AFloor', 'types': [rr['TypeB']], 'param': '-floor' + f},
@@ -211,10 +233,12 @@ class RuleLib(object):
         bRows = getRows(self.AR[rr['TypeB']['possibleSet']])
         aCols = getCols(self.AR[rr['TypeA']['possibleSet']])
         bCols = getCols(self.AR[rr['TypeB']['possibleSet']])
+        self.logger += [{'op': 'getRC'}] * 4
         
         if rr['param'] == True: #SameRC
           commonRows = aRows & bRows
           commonCols = aCols & bCols
+          self.logger += [{'op': 'getCommonRC'}] * 2
 
           for i in commonRows:
             self.addRules([
@@ -242,3 +266,5 @@ class RuleLib(object):
             self.addRules(
               {'class': 'RC', 'types': [multiColType], 'param': '-c'+ oneColNum}
             )
+          
+          self.logger += [{'op': 'checkSingleMultiRC'}] * 2

@@ -36,36 +36,36 @@ class TEC(object):
     'getCommonRC':    1.9,
     'checkSingleMultiRC':12.3, 
   }
-  TECFunDict = {
+  TECFunDict = { # for checked done
     #AR
-    'readAR':         lambda k, s, a: k,
-    'readFloor':      lambda k, s, a: k,
-    'readNFloor':     lambda k, s, a: k,
-    'readFruit':      lambda k, s, a: k,
-    'readNFruit':     lambda k, s, a: k,
-    'intersectAR':    lambda k, s, a: k * s,
+    'readAR':         lambda k, s, a: k, #
+    'readFloor':      lambda k, s, a: k, #
+    'readNFloor':     lambda k, s, a: k, #
+    'readFruit':      lambda k, s, a: k, #
+    'readNFruit':     lambda k, s, a: k, #
+    'intersectAR':    lambda k, s, a: k * s, #
     #Choosing
-    'chooseAR':       lambda k, s, a: k * a ** 2,
+    'chooseAR':       lambda k, s, a: k * a ** 2, #
     #Inplement
-    'getAnimalAmount':lambda k, s, a: k,
-    'getSizeofAR':    lambda k, s, a: k * math.sqrt(s),
-    'writeMap':       lambda k, s, a: k * s,
-    'clearOccupiedGrids': lambda k, s, a: k * s * a,
-    'createBranch':   lambda k, s, a: k,
-    'selectCombtoTry':lambda k, s, a: k,
-    'traceBack':      lambda k, s, a: k * s,
+    'getAnimalAmount':lambda k, s, a: k, #
+    'getSizeofAR':    lambda k, s, a: k * math.sqrt(s), #
+    'writeMap':       lambda k, s, a: k * s, #
+    'clearOccupiedGrids': lambda k, s, a: k * s * a, #
+    'createBranch':   lambda k, s, a: k, #
+    'selectCombtoTry':lambda k, s, a: k, #
+    #'traceBack':      lambda k, s, a: k * s,
     #RR
-    'readRR':         lambda k, s, a: k,
-    'get2AnimalsOfRR':lambda k, s, a: k,
-    'findARFromRR':   lambda k, s, a: k * math.sqrt(a),
-    'getARArea':      lambda k, s, a: k,
-    'getFloor':       lambda k, s, a: k,
-    'getPossileAdj':  lambda k, s, a: k * math.sqrt(s),
-    'getCommonAdj':   lambda k, s, a: k * s,
-    'getComplement':  lambda k, s, a: k,
-    'getRC':          lambda k, s, a: k,
-    'getCommonRC':    lambda k, s, a: k,
-    'checkSingleMultiRC':lambda k, s, a: k, 
+    'readRR':         lambda k, s, a: k, #
+    'get2AnimalsOfRR':lambda k, s, a: k, #
+    'findARFromRR':   lambda k, s, a: k * math.sqrt(a), #
+    'getARArea':      lambda k, s, a: k, # 
+    'getFloor':       lambda k, s, a: k, #
+    'getPossileAdj':  lambda k, s, a: k * math.sqrt(s), #
+    'getCommonAdj':   lambda k, s, a: k * s, #
+    'getComplement':  lambda k, s, a: k, #
+    'getRC':          lambda k, s, a: k, #
+    'getCommonRC':    lambda k, s, a: k, #
+    'checkSingleMultiRC':lambda k, s, a: k, #
   }
 
   @staticmethod
