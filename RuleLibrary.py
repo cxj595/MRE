@@ -225,9 +225,3 @@ class RuleLib(object):
             self.addRules(
               {'class': 'RC', 'types': [multiColType], 'param': '-c'+ oneColNum}
             )
-
-
-
-        
-
- 
