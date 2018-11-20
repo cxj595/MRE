@@ -38,10 +38,9 @@ class StateNode(object):
         self.solved = False
 
     def outputRusult(self, solutionOrder=0):
-        print('-'*5 + 'Solution' +
-              solutionOrder if solutionOrder != 0 else '' + '-'*5)
+        print('-'*5 + 'Solution' + str(solutionOrder) + '-'*5)
         print()
-        print('TEC: ' + self.energy)
+        print('TEC: ' + str(self.energy))
         self.state['map'].outputMap()
         print('\n\n')
 
@@ -97,7 +96,7 @@ class StateTree(object):
             ])  # 叠加写地图、清格子的能量（提前）
 
             targetNode.state['map'].implement(ARType, toSelect)
-            if targetNode.state['map'].getEmpty == set():  # 出现一个解
+            if targetNode.state['map'].getEmpty() == set([]):  # 出现一个解
                 targetNode.solved = True
 
             targetNode.state['rules'].AR.pop(ARType)  # 删除应用完的AR
@@ -117,12 +116,9 @@ class StateTree(object):
 
         while possibleStateQueue.empty() == False:
             thisState = possibleStateQueue.get()
-            thisState['rules'].simplifyRules()
-            ARTypeToImplement = thisState['rules'].chooseRule()
+            thisState.state['rules'].simplifyLib(thisState.state['map'])
+            ARTypeToImplement = thisState.state['rules'].chooseRule(thisState.state['map'])
             nextNodes = self.implementAR(thisState, ARTypeToImplement)
-
-            thisState.energy += thisState['rules'].TECAcc # 规则化简 + 选择规则 + 规则应用的能量
-            thisState['rules'].TECAcc = 0 
             
             for node in nextNodes:
                 if node.solved == True:

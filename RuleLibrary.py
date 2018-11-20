@@ -121,7 +121,7 @@ class RuleLib(object):
     self.TECAcc += TEC.BaseTEC([{'op': 'chooseAR', 'amount': len(self.AR)}])
 
     entropy = math.inf
-    remains = [i for i in self.AR.values()['amount']]
+    remains = [v['amount'] for v in self.AR.values()]
 
     for thisType, value in self.AR.items():
       thisAmount = value['amount']
@@ -147,12 +147,17 @@ class RuleLib(object):
 
   def simplifyLib(self, mapUpdated):
     self.removeOccupied(mapUpdated)
+
     for rr in self.RR:
       self.TECAcc += TEC.BaseTEC([
         {'op': 'readRR'}, 
-        {'op': 'get2AnimalsOfRR'}, 
-        2 * {'op': 'findARFromRR', 'amount' = len(self.AR)},
-        2 * {'op': 'getARArea'}])
+        {'op': 'get2AnimalsOfRR'}
+        ])
+
+      self.TECAcc += 2 * TEC.BaseTEC([
+        {'op': 'findARFromRR', 'amount': len(self.AR)},
+        {'op': 'getARArea'}
+        ])
 
       if rr['class'] == 'Adjacent':
         getAdjSet = lambda ij : \
