@@ -13,6 +13,7 @@ import misc
 from random import choice
 from queue import Queue
 from ThinkingEnergyCost import TEC
+import math
 
 
 class StateNode(object):
@@ -35,26 +36,38 @@ class StateNode(object):
 		由StateTree操作数据
 	'''
 
-	def __init__(self, stateMap, ruleLib, stateID=[], logger=[], parent=None):
+	class logger(object):
+		
+		def __init__(self, base = 1):
+			self.log = []
+			self.base = base
+		
+		def addLog(self, logList):
+			for l in logList:
+				l['base'] = self.base
+			self.log += logList
+		pass
+
+
+
+	def __init__(self, stateMap, ruleLib, stateID=[], stateLogger=logger(), parent=None):
 		self.map = stateMap
 		self.ruleLib = ruleLib
 		self.id = stateID
 		self.children = []
 		self.parent = parent
-		self.logger = logger
+		self.logger = stateLogger
 		self.solved = False
 
 		self.map.logger = self.logger
 		self.ruleLib.logger = self.logger
 
-			
 
 	def outputRusult(self, solutionOrder=0):
-		print('-'*5 + 'Solution' + str(solutionOrder) + '-'*5)
-		print()
-		print('TEC: ' + str(TEC.BaseTEC(self.logger)))
+		print('-'*10 + 'Solution' + str(solutionOrder) + '-'*10)
 		self.map.outputMap()
-		print('\n\n')
+		print('\nTEC: ' + "%.3f" % TEC.BaseTEC(self.logger.log))
+		print('\n')
 
 
 class StateTree(object):
@@ -81,19 +94,20 @@ class StateTree(object):
 
 		# Genernate full-comb of branch subsets as [subset_1, ...]
 		branchSets = list(combinations(toSelect, amount))
-		currentNode.logger += [
+		currentNode.logger.addLog([
 			{'op': 'createBranch'},
 			{'op': 'selectCombtoTry'}
-			]
+			])
 
 		for i in range(misc.comb(len(toSelect), amount)):  # C(available, need)
 			sn = StateNode(
 				stateMap = copy.deepcopy(currentNode.map), 
 				ruleLib = copy.deepcopy(currentNode.ruleLib),
 				stateID = currentNode.id.append(i), 
-				logger = copy.deepcopy(currentNode.logger),
+				stateLogger = copy.deepcopy(currentNode.logger),
 				parent = currentNode
 				)  # 建节点，note：id里包含了次序, 子类logger自动迁移
+			sn.logger.base *= math.sqrt(misc.comb(len(toSelect), amount)) # 假设以人的智慧，需要试探的次数期望为sqrt(可能情形)，可以用之后的每一步操作*能量倍数s近似估计耗费的能量
 
 		sn.map.implement(ARType, branchSets.pop())  # 写地图
 		currentNode.children.append(sn)  # 加子节点
@@ -107,15 +121,15 @@ class StateTree(object):
 
 		applyingAR = targetNode.ruleLib.AR[ARType]
 		toSelect = applyingAR['possibleSet'] & targetNode.map.getEmpty()
-		targetNode.logger += [{'op': 'getSizeofAR'}]
+		targetNode.logger.addLog([{'op': 'getSizeofAR'}])
 
 		if applyingAR['possibleSet'] == toSelect:  # CAR
 			targetNode.map.implement(ARType, toSelect)
-			targetNode.logger += [{
+			targetNode.logger.addLog([{
 				'op': 'clearOccupiedGrids', 
 				'size': len(toSelect), 
 				'amount': len(targetNode.ruleLib.AR) - 1 # 减去自身
-				}] #提前叠加清除Occupied Grids的能量
+				}]) #提前叠加清除Occupied Grids的能量
 
 			targetNode.ruleLib.AR.pop(ARType)  # 删除应用完的AR
 			if targetNode.map.getEmpty() == set([]):  # 出现一个解

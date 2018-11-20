@@ -34,7 +34,7 @@ class Map(object):
       else: #已经有动物
         raise RuntimeError('Animal conflict')
     
-    self.logger += [{'op': 'writeMap', 'size': sizeToWrite}]
+    self.logger.addLog([{'op': 'writeMap', 'size': sizeToWrite}])
 
 
   def findSet(self, target):

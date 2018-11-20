@@ -82,5 +82,5 @@ class TEC(object):
     for param in params:
       op = param['op']
       k = TEC.kDict[op]
-      TECAcc += TEC.TECFunDict[op](k, param.get('ARSize', 0), param.get('amount', 0))
+      TECAcc += param.get('base', 1) * TEC.TECFunDict[op](k, param.get('size', 0), param.get('amount', 0))
     return TECAcc
