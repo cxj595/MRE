@@ -157,19 +157,10 @@ class RuleLib(object):
       self.logger += [  
         {'op': 'readRR'}, 
         {'op': 'get2AnimalsOfRR'}
-<<<<<<< HEAD
         ] + 2 * [ # 有两个RR，故乘以2
         {'op': 'findARFromRR', 'amount': len(self.AR)},
         {'op': 'getARArea'}
         ] # 共同预处理
-=======
-        ])
-
-      self.TECAcc += 2 * TEC.BaseTEC([
-        {'op': 'findARFromRR', 'amount': len(self.AR)},
-        {'op': 'getARArea'}
-        ])
->>>>>>> 424cbd69c565f8452d47fba27c18bb9c4b8013c8
 
       if rr['class'] == 'Adjacent':
         getAdjSet = lambda ij : \
