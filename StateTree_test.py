@@ -24,7 +24,7 @@ class Test_Node(object):
     assert root.id == []
     assert root.parent == None
     assert root.children == []
-    assert root.state['rules'].AR['panda']['possibleSet'] == set(RuleLib.AR_TABLE['floor2'])
+    assert root.ruleLib.AR['panda']['possibleSet'] == set(RuleLib.AR_TABLE['floor2'])
 
     
 class Test_Tree(object):
@@ -43,8 +43,7 @@ class Test_Tree(object):
     ]
     RL.addRules(addedRules)
     
-    root = StateNode({'map': m, 'rules': RL}, id=[], energy=RL.TECAcc)
-    
+    root = StateNode(stateMap = m, ruleLib = RL)
     tree = StateTree(root)
     tree.solve()
 
