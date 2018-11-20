@@ -8,6 +8,7 @@ def test_init():
 
 def test_implement():
   m = Map()
+  m.logger = []
   m.implement('tiger', set([(0,y) for y in range(3)]))
   assert m.map == [
     ['tiger', 'tiger', 'tiger'],
@@ -25,6 +26,7 @@ def test_implement():
 @raises(RuntimeError)
 def test_implement_conflict():
   m = Map()
+  m.logger = []
   m.implement('tiger', set([(0,y) for y in range(3)]))
   assert m.map == [
     ['tiger', 'tiger', 'tiger'],

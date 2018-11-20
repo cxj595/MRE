@@ -13,14 +13,15 @@ class Test_Node(object):
       {'type': 'hippo', 'amount': 5},
     ]
     RL = RuleLib(initRules)
+    root = StateNode(stateMap = m, ruleLib = RL)
+
     addedRules = [
       {'class': 'AFloor', 'types': ['tiger'], 'param': ['floor3']},
       {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
       {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
     ]
-    RL.addRules(addedRules)
+    root.ruleLib.addRules(addedRules)
     
-    root = StateNode({'map': m, 'rules': RL})
     assert root.id == []
     assert root.parent == None
     assert root.children == []
@@ -36,14 +37,15 @@ class Test_Tree(object):
       {'type': 'hippo', 'amount': 5},
     ]
     RL = RuleLib(initRules)
+    root = StateNode(stateMap = m, ruleLib = RL)
+
     addedRules = [
       {'class': 'AFloor', 'types': ['tiger'], 'param': ['floor3']},
       {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
       {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
     ]
-    RL.addRules(addedRules)
+    root.ruleLib.addRules(addedRules)
     
-    root = StateNode(stateMap = m, ruleLib = RL)
     tree = StateTree(root)
     tree.solve()
 

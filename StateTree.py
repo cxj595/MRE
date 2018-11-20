@@ -52,7 +52,7 @@ class StateNode(object):
 	def outputRusult(self, solutionOrder=0):
 		print('-'*5 + 'Solution' + str(solutionOrder) + '-'*5)
 		print()
-		print('TEC: ' + TEC.BaseTEC(self.logger))
+		print('TEC: ' + str(TEC.BaseTEC(self.logger)))
 		self.map.outputMap()
 		print('\n\n')
 
@@ -111,7 +111,7 @@ class StateTree(object):
 
 		if applyingAR['possibleSet'] == toSelect:  # CAR
 			targetNode.map.implement(ARType, toSelect)
-			targetNode.loggger += [{
+			targetNode.logger += [{
 				'op': 'clearOccupiedGrids', 
 				'size': len(toSelect), 
 				'amount': len(targetNode.ruleLib.AR) - 1 # 减去自身

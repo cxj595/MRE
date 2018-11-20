@@ -32,6 +32,7 @@ def test_AbsoluteRule():
     {'class': 'AFloor', 'types': ['hippo'], 'param': ['floor1']},
     {'class': 'AFloor', 'types': ['panda'], 'param': ['-floor1', '-floor3']}
   ]
+  RL.logger = []
 
   RL.addRules(addedRules)
   tigerExpect = {'amount': 1, 'possibleSet': set([(0,2)])}
@@ -49,6 +50,7 @@ def test_RelativeRules():
     {'type': 'hippo', 'amount': 5},
   ]
   RL = RuleLib(initRules)
+  RL.logger = []
   
   addedRules = [
     {'class': 'RFloor', 'types':['tiger', 'panda'], 'param': -1},
