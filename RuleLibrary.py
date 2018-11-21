@@ -143,6 +143,7 @@ class RuleLib(object):
 
       if thisAmount == thisPossible: # CAR
         return thisType
+
       elif thisAmount < thisPossible: # UAR
         thisEntropy = misc.comb(thisPossible, thisAmount) * math.factorial(sum(remains) - thisAmount) \
                                  / (reduce(lambda x, y: x * y, map(math.factorial, remains)) / math.factorial(thisAmount))
@@ -151,10 +152,11 @@ class RuleLib(object):
           resultTypes = [thisType]
         elif thisEntropy == entropy: # 最优UAR选择之一
           resultTypes.append(thisType)
+
       else: #thisAmount > thisPossible，本状态出现无解，应当返回该种类，在 StateTree.implementAR() 里尽早剪枝
         return thisType
 
-      return choice(resultTypes) # 没有无解的种类 <=> 本状态有解 <=> 返回解（之一）
+    return choice(resultTypes) # 没有无解的种类 <=> 本状态有解 <=> 返回解（之一）
   
 
   def removeOccupied(self, mapUpdated):
