@@ -89,19 +89,19 @@ class StateTree(object):
 
 	def addStateChilds(self, currentNode, toSelect, ARType, amount):
 		'''
-		Funtion: create new branch when UAR
+		Funtion: create new branch when UAR, and simplify each branch's rueLib, and pop the AR to implement
 		Input: currentNode(applying UAR), toSelect(available & possibleSet), ARType(lead to UAR)
 		**Attention**: Must be UAR
 		'''
 
 		# Genernate full-comb of branch subsets as [subset_1, ...]
 
-		mustSelect = toSelect # is a set
-		for arValue in currentNode.ruleLib.AR.value(): # 此时的AR已经删除了ARType
-			mustSelect -= arValue['possibleSet']
+		mustSelect = set(toSelect) # is a copy of toSelect
+		for key in filter(lambda a: a!=ARType, currentNode.ruleLib.AR.keys()): # 过滤掉应当应用的AR
+			mustSelect -= currentNode.ruleLib.AR[key]['possibleSet']
 		toSelect -= mustSelect
 
-		branchSets = list(combinations(toSelect, amount)) # is list of tuples
+		branchSets = list(combinations(toSelect, amount - len(mustSelect))) # is list of tuples
 		for i in range(len(branchSets)):
 			branchSets[i] += tuple(mustSelect)
 
@@ -110,7 +110,7 @@ class StateTree(object):
 			{'op': 'selectCombtoTry'}
 			])
 
-		for i in range(misc.comb(len(toSelect), amount)):  # C(available, need)
+		for i in range(misc.comb(len(toSelect), amount - len(mustSelect))):  # C(available, need)
 			sn = StateNode(
 				stateMap = copy.deepcopy(currentNode.map), 
 				ruleLib = copy.deepcopy(currentNode.ruleLib),
@@ -119,7 +119,13 @@ class StateTree(object):
 				parent = currentNode
 				)  # 建节点，note：id里包含了次序, 子类logger自动迁移
 			sn.logger.base *= math.sqrt(misc.comb(len(toSelect), amount)) # 假设以人的智慧，需要试探的次数期望为sqrt(可能情形)，可以用之后的每一步操作*能量倍数s近似估计耗费的能量
-			sn.map.implement(ARType, branchSets.pop())  # 写地图
+
+			implementSet = branchSets.pop()
+			sn.ruleLib.AR[ARType]['possibleSet'] = set(implementSet) # 此时UAR变为CAR
+			sn.ruleLib.simplifyLib(sn.map) # 此步是为了消除可能的组合选取产生的无解（AR弹出后无法再进行矛盾验证）
+
+			sn.ruleLib.AR.pop(ARType) # 此时再删除AR
+			sn.map.implement(ARType, implementSet)  # 写地图
 			currentNode.children.append(sn)  # 加子节点
 
 
@@ -150,7 +156,6 @@ class StateTree(object):
 			return [targetNode]
 
 		elif applyingAmount < len(toSelect):  # UAR
-			targetNode.ruleLib.AR.pop(ARType)  # 删除分类讨论过的AR
 			self.addStateChilds(targetNode, toSelect, ARType, applyingAmount)
 			return targetNode.children
 		else:  # Grids not enough <=> no solution

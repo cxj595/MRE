@@ -186,7 +186,9 @@ class RuleLib(object):
         ]) # 共同预处理
       
       if rr['typeA'] not in self.AR.keys() or rr['typeB'] not in self.AR.keys(): #一方已经确定并从AR中一出 -> 另一方AR已经当前最简，RR也没有必要存在
+        removedIndex = self.RR.index(rr)
         self.RR.remove(rr)
+        toSimplifyIndexs = set(map(lambda i: i-1 if i>removedIndex else i, toSimplifyIndexs))
         continue
 
       if rr['class'] == 'Adjacent':
