@@ -170,9 +170,12 @@ class RuleLib(object):
   def simplifyLib(self, mapUpdated): # 本函数中与AR有关的能量消耗，在addRules()中计算，此处只计算与RR相关的能量
     self.removeOccupied(mapUpdated)
 
-    toSimplify = set(self.RR)
-    while toSimplify != set():
-      rr = toSimplify.pop()
+    getRelativeRRIndexs = lambda thisType: set(filter(lambda x: self.RR[x]['typeA'] == thisType or self.RR[x]['typeB'] == thisType, \
+                                                      [i for i in range(len(self.RR))]))
+    toSimplifyIndexs = set([i for i in range(len(self.RR))])
+
+    while toSimplifyIndexs != set():
+      rr = self.RR[toSimplifyIndexs.pop()]
       
       self.logger.addLog([  
         {'op': 'readRR'}, 
@@ -205,9 +208,9 @@ class RuleLib(object):
               possibleAdj |= combCommonAdj
           
           if self.AR[rr['typeA']]['possibleSet'] > bPossibleAdj:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
           if self.AR[rr['typeB']]['possibleSet'] > aPossibleAdj:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
 
           self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
           self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
@@ -230,9 +233,8 @@ class RuleLib(object):
               possibleNAdj |= combCommonNAdj
 
           if self.AR[rr['typeA']]['possibleSet'] > bPossibleNAdj:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
-          if self.AR[rr['typeB']]['possibleSet'] > aPossibleNAdj:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
 
           self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
           self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
@@ -260,15 +262,15 @@ class RuleLib(object):
 
           for f in exceptFloors:
             if self.addRules([{'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor' + f]}]) == True: 
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
             if self.addRules([{'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor' + f]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
 
         elif rr['param'] == 'higher': # A Higher than B
           if self.addRules([{'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor1']}]) == True:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
           if self.addRules([{'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor3']}]) == True:
-            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+            toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
         
         else: # 参数分支
           raise(RuntimeError('Invalid Rule'))
@@ -290,15 +292,15 @@ class RuleLib(object):
 
           for i in commonRows:
             if self.addRules([{'class': 'RC', 'types': [rr['typeA']], 'param': ['r'+ i]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
             if self.addRules([{'class': 'RC', 'types': [rr['typeB']], 'param': ['r'+ i]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
           
           for j in commonCols:
             if self.addRules([{'class': 'RC', 'types': [rr['typeA']], 'param': ['c'+ j]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeA'])
             if self.addRules([{'class': 'RC', 'types': [rr['typeB']], 'param': ['c'+ j]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr['typeB'])
 
         
         elif rr['param'] == 'negative': #DiffRC
@@ -306,19 +308,19 @@ class RuleLib(object):
             multiRowType = rr['typeA'] if len(bRows) == 1 else rr['typeB']
             oneRowNum = aRows.pop() if len(aRows) == 1 else bRows.pop()
             if self.addRules([{'class': 'RC', 'types': [multiRowType], 'param': ['-r'+ oneRowNum]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == multiRowType or x['typeB'] == multiRowType, self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(multiRowType)
 
 
           if len(aCols) == 1 ^ len(bCols) == 1:
             multiColType = rr['typeA'] if len(bCols) == 1 else rr['typeB']
             oneColNum = aCols.pop() if len(aRows) == 1 else bCols.pop()
             if self.addRules([{'class': 'RC', 'types': [multiColType], 'param': ['-c'+ oneColNum]}]) == True:
-              toSimplify |= set(filter(lambda x: x['typeA'] == multiColType or x['typeB'] == multiColType, self.RR))
+              toSimplifyIndexs |= getRelativeRRIndexs(rr[multiColType])
 
           self.logger.addLog([{'op': 'checkSingleMultiRC'}] * 2)
         
         else: #参数分支
           raise(RuntimeError('Invalid Rule'))
 
-    else: #种类分支
-      raise(RuntimeError('Invalid Rule'))
+      else: #种类分支
+        raise(RuntimeError('Invalid Rule'))
