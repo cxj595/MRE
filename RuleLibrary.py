@@ -85,6 +85,7 @@ class RuleLib(object):
         'param': [], defined by class
       }
     ]
+    Return: AR changed? True/ False
     '''
 
     ARChanged = False
@@ -168,151 +169,156 @@ class RuleLib(object):
 
   def simplifyLib(self, mapUpdated): # 本函数中与AR有关的能量消耗，在addRules()中计算，此处只计算与RR相关的能量
     self.removeOccupied(mapUpdated)
-    
-    ARChanged = False
-    firstRound = True
-    
-    while ARChanged  or firstRound:
-      ARChanged = False
-      firstRound = False
 
-      for rr in self.RR:
-        self.logger.addLog([  
-          {'op': 'readRR'}, 
-          {'op': 'get2AnimalsOfRR'}
-          ] + 2 * [ # 有两个RR，故乘以2
-          {'op': 'findARFromRR', 'amount': len(self.AR)},
-          {'op': 'getARArea'}
-          ]) # 共同预处理
+    toSimplify = set(self.RR)
+    while toSimplify != set():
+      rr = toSimplify.pop()
+      
+      self.logger.addLog([  
+        {'op': 'readRR'}, 
+        {'op': 'get2AnimalsOfRR'}
+        ] + 2 * [ # 有两个RR，故乘以2
+        {'op': 'findARFromRR', 'amount': len(self.AR)},
+        {'op': 'getARArea'}
+        ]) # 共同预处理
+      
+      if rr['typeA'] not in self.AR.keys() or rr['typeB'] not in self.AR.keys(): #一方已经确定并从AR中一出 -> 另一方AR已经当前最简，RR也没有必要存在
+        self.RR.remove(rr)
+        continue
+
+      if rr['class'] == 'Adjacent':
+        availableGrids = mapUpdated.getEmpty()
+        getAvailableAdjSet = lambda ij : \
+        set(list(filter(lambda xy: 0<=xy[0] and xy[0]<=2 and 0<=xy[1] and xy[1]<=2 and (xy[0], xy[1]) in availableGrids, \
+        [(ij[0]-1,ij[1]),(ij[0]+1, ij[1]), (ij[0],ij[1]-1), (ij[0],ij[1]+1)]))) # Get the Adjacent set of a point
+
+        if rr['param'] == 'positive': #Adjacent
+          aPossibleAdj = set()
+          bPossibleAdj = set()
+
+          for thisType in ['typeA', 'typeB']:
+            possibleAdj = aPossibleAdj if thisType == 'typeA' else bPossibleAdj
+            for possibleComb in combinations(self.AR[rr[thisType]]['possibleSet'], self.AR[rr[thisType]]['amount']): #对于每一个可能的AR组合
+              combCommonAdj = set(self.AR_TABLE['all'])
+              for p in possibleComb:
+                combCommonAdj &= getAvailableAdjSet(p)
+              possibleAdj |= combCommonAdj
+          
+          if self.AR[rr['typeA']]['possibleSet'] > bPossibleAdj:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+          if self.AR[rr['typeB']]['possibleSet'] > aPossibleAdj:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+
+          self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
+          self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
+
+          self.logger.addLog([
+            {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['typeA']]['possibleSet']))},
+            {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['typeB']]['possibleSet']))},
+          ])
+
+        elif rr['param'] == 'negative': #Not Adjacent
+          aPossibleNAdj = set()
+          bPossibleNAdj = set()
+
+          for thisType in ['typeA', 'typeB']:
+            possibleNAdj = aPossibleNAdj if thisType == 'typeA' else bPossibleNAdj
+            for possibleComb in combinations(self.AR[rr[thisType]]['possibleSet'], self.AR[rr[thisType]]['amount']): #对于每一个可能的AR组合
+              combCommonNAdj = set(self.AR_TABLE['all'])
+              for p in possibleComb:
+                combCommonNAdj &= (self.AR_TABLE['all'] - getAvailableAdjSet(p))
+              possibleNAdj |= combCommonNAdj
+
+          if self.AR[rr['typeA']]['possibleSet'] > bPossibleNAdj:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+          if self.AR[rr['typeB']]['possibleSet'] > aPossibleNAdj:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+
+          self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
+          self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
+
+          self.logger.addLog([
+            {'op': 'getPossileNAdj', 'size': len(self.AR[rr['typeA']]['possibleSet'])},
+            {'op': 'getComplement'},
+            {'op': 'getPossileNAdj', 'size': len(self.AR[rr['typeB']]['possibleSet'])},
+            {'op': 'getComplement'},
+          ])
+
+        else: # 参数分支
+          raise(RuntimeError('Invalid Rule'))
+
+      
+      elif rr['class'] == 'RFloor':
+        if rr['param'] == 'same': #SameFloor
+          getFloor = lambda ij: set([3]) if (ij==(0,2)) else set([2]) if (ij==(0,1) or ij==(1,1) or ij==(1,2)) else set([1])
+          getPossibleFLoors = lambda ARType: reduce((lambda s,f: s|f), [getFloor(p) for p in self.AR[ARType]['possibleFloors']])
+
+          aFloors = getPossibleFLoors(rr['typeA'])
+          bFloors = getPossibleFLoors(rr['typeB'])
+          exceptFloors = set([1,2,3]) - (aFloors & bFloors)
+          self.logger.addLog([{'op': 'getFloor'}] * 2)
+
+          for f in exceptFloors:
+            if self.addRules([{'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor' + f]}]) == True: 
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+            if self.addRules([{'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor' + f]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+
+        elif rr['param'] == 'higher': # A Higher than B
+          if self.addRules([{'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor1']}]) == True:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+          if self.addRules([{'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor3']}]) == True:
+            toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
         
-        if rr['typeA'] not in self.AR.keys() or rr['typeB'] not in self.AR.keys(): #一方已经确定并从AR中一出 -> 另一方AR已经当前最简，RR也没有必要存在
-          self.RR.remove(rr)
-          continue
+        else: # 参数分支
+          raise(RuntimeError('Invalid Rule'))
+      
+      elif rr['class'] == 'SameRC':
+        getRows = lambda dots: reduce(lambda acc,row: acc|row, [set([ij[0]]) for ij in dots])
+        getCols = lambda dots: reduce(lambda acc,col: acc|col, [set([ij[1]]) for ij in dots])
 
-        if rr['class'] == 'Adjacent':
-          availableGrids = mapUpdated.getEmpty()
-          getAvailableAdjSet = lambda ij : \
-          set(list(filter(lambda xy: 0<=xy[0] and xy[0]<=2 and 0<=xy[1] and xy[1]<=2 and (xy[0], xy[1]) in availableGrids, \
-          [(ij[0]-1,ij[1]),(ij[0]+1, ij[1]), (ij[0],ij[1]-1), (ij[0],ij[1]+1)]))) # Get the Adjacent set of a point
+        aRows = getRows(self.AR[rr['typeA']['possibleSet']])
+        bRows = getRows(self.AR[rr['typeB']['possibleSet']])
+        aCols = getCols(self.AR[rr['typeA']['possibleSet']])
+        bCols = getCols(self.AR[rr['typeB']['possibleSet']])
+        self.logger.addLog([{'op': 'getRC'}] * 4)
+        
+        if rr['param'] == 'positive': #SameRC
+          commonRows = aRows & bRows
+          commonCols = aCols & bCols
+          self.logger.addLog([{'op': 'getCommonRC'}] * 2)
 
-          if rr['param'] == 'positive': #Adjacent
-            aPossibleAdj = set()
-            bPossibleAdj = set()
-
-            for thisType in ['typeA', 'typeB']:
-              possibleAdj = aPossibleAdj if thisType == 'typeA' else bPossibleAdj
-              for possibleComb in combinations(self.AR[rr[thisType]]['possibleSet'], self.AR[rr[thisType]]['amount']): #对于每一个可能的AR组合
-                combCommonAdj = set(self.AR_TABLE['all'])
-                for p in possibleComb:
-                  combCommonAdj &= getAvailableAdjSet(p)
-                possibleAdj |= combCommonAdj
-            
-            if self.AR[rr['typeA']]['possibleSet'] > bPossibleAdj or self.AR[rr['typeB']]['possibleSet'] > aPossibleAdj:
-              ARChanged = True
-            self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
-            self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
-
-            self.logger.addLog([
-              {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['typeA']]['possibleSet']))},
-              {'op': 'getPossileAdj', 'size': math.sqrt(len(self.AR[rr['typeB']]['possibleSet']))},
-            ])
-
-          elif rr['param'] == 'negative': #Not Adjacent
-            aPossibleNAdj = set()
-            bPossibleNAdj = set()
-
-            for thisType in ['typeA', 'typeB']:
-              possibleNAdj = aPossibleNAdj if thisType == 'typeA' else bPossibleNAdj
-              for possibleComb in combinations(self.AR[rr[thisType]]['possibleSet'], self.AR[rr[thisType]]['amount']): #对于每一个可能的AR组合
-                combCommonNAdj = set(self.AR_TABLE['all'])
-                for p in possibleComb:
-                  combCommonNAdj &= (self.AR_TABLE['all'] - getAvailableAdjSet(p))
-                possibleNAdj |= combCommonNAdj
-
-            if self.AR[rr['typeA']]['possibleSet'] > bPossibleNAdj or self.AR[rr['typeB']]['possibleSet'] > aPossibleNAdj:
-              ARChanged = True
-            self.AR[rr['typeA']]['possibleSet'] &= bPossibleAdj
-            self.AR[rr['typeB']]['possibleSet'] &= aPossibleAdj
-
-            self.logger.addLog([
-              {'op': 'getPossileNAdj', 'size': len(self.AR[rr['typeA']]['possibleSet'])},
-              {'op': 'getComplement'},
-              {'op': 'getPossileNAdj', 'size': len(self.AR[rr['typeB']]['possibleSet'])},
-              {'op': 'getComplement'},
-            ])
-
-          else:
-            raise(RuntimeError('Invalid Rule'))
+          for i in commonRows:
+            if self.addRules([{'class': 'RC', 'types': [rr['typeA']], 'param': ['r'+ i]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+            if self.addRules([{'class': 'RC', 'types': [rr['typeB']], 'param': ['r'+ i]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
+          
+          for j in commonCols:
+            if self.addRules([{'class': 'RC', 'types': [rr['typeA']], 'param': ['c'+ j]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeA'] or x['typeB'] == rr['typeA'], self.RR))
+            if self.addRules([{'class': 'RC', 'types': [rr['typeB']], 'param': ['c'+ j]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == rr['typeB'] or x['typeB'] == rr['typeB'], self.RR))
 
         
-        elif rr['class'] == 'RFloor':
-          if rr['param'] == 'same': #SameFloor
-            getFloor = lambda ij: set([3]) if (ij==(0,2)) else set([2]) if (ij==(0,1) or ij==(1,1) or ij==(1,2)) else set([1])
-            getPossibleFLoors = lambda ARType: reduce((lambda s,f: s|f), [getFloor(p) for p in self.AR[ARType]['possibleFloors']])
+        elif rr['param'] == 'negative': #DiffRC
+          if len(aRows) == 1 ^ len(bRows) == 1: # 当其中一个的行/列惟一，且另一个不唯一，可以将其从另一类中减去，下同；否则不能减去
+            multiRowType = rr['typeA'] if len(bRows) == 1 else rr['typeB']
+            oneRowNum = aRows.pop() if len(aRows) == 1 else bRows.pop()
+            if self.addRules([{'class': 'RC', 'types': [multiRowType], 'param': ['-r'+ oneRowNum]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == multiRowType or x['typeB'] == multiRowType, self.RR))
 
-            aFloors = getPossibleFLoors(rr['typeA'])
-            bFloors = getPossibleFLoors(rr['typeB'])
-            exceptFloors = set([1,2,3]) - (aFloors & bFloors)
-            self.logger.addLog([{'op': 'getFloor'}] * 2)
 
-            for f in exceptFloors:
-              ARChanged |= self.addRules([
-                {'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor' + f]}, 
-                {'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor' + f]},
-              ])
+          if len(aCols) == 1 ^ len(bCols) == 1:
+            multiColType = rr['typeA'] if len(bCols) == 1 else rr['typeB']
+            oneColNum = aCols.pop() if len(aRows) == 1 else bCols.pop()
+            if self.addRules([{'class': 'RC', 'types': [multiColType], 'param': ['-c'+ oneColNum]}]) == True:
+              toSimplify |= set(filter(lambda x: x['typeA'] == multiColType or x['typeB'] == multiColType, self.RR))
 
-          elif rr['param'] == 'higher': # A Higher than B
-            ARChanged |= self.addRules([
-              {'class': 'AFloor', 'types': [rr['typeA']], 'param': ['-floor1']}, 
-              {'class': 'AFloor', 'types': [rr['typeB']], 'param': ['-floor3']}, 
-            ])
-          
-          else:
-            raise(RuntimeError('Invalid Rule'))
+          self.logger.addLog([{'op': 'checkSingleMultiRC'}] * 2)
         
-        elif rr['class'] == 'SameRC':
-          getRows = lambda dots: reduce(lambda acc,row: acc|row, [set([ij[0]]) for ij in dots])
-          getCols = lambda dots: reduce(lambda acc,col: acc|col, [set([ij[1]]) for ij in dots])
+        else: #参数分支
+          raise(RuntimeError('Invalid Rule'))
 
-          aRows = getRows(self.AR[rr['typeA']['possibleSet']])
-          bRows = getRows(self.AR[rr['typeB']['possibleSet']])
-          aCols = getCols(self.AR[rr['typeA']['possibleSet']])
-          bCols = getCols(self.AR[rr['typeB']['possibleSet']])
-          self.logger.addLog([{'op': 'getRC'}] * 4)
-          
-          if rr['param'] == 'positive': #SameRC
-            commonRows = aRows & bRows
-            commonCols = aCols & bCols
-            self.logger.addLog([{'op': 'getCommonRC'}] * 2)
-
-            for i in commonRows:
-              ARChanged |= self.addRules([
-                {'class': 'RC', 'types': [rr['typeA']], 'param': ['r'+ i]},
-                {'class': 'RC', 'types': [rr['typeB']], 'param': ['r'+ i]},
-              ])
-            
-            for j in commonCols:
-              ARChanged |= self.addRules([
-                {'class': 'RC', 'types': [rr['typeA']], 'param': ['c'+ j]},
-                {'class': 'RC', 'types': [rr['typeB']], 'param': ['c'+ j]},
-              ])
-          
-          elif rr['param'] == 'negative': #DiffRC
-            if len(aRows) == 1 ^ len(bRows) == 1: # 当其中一个的行/列惟一，且另一个不唯一，可以将其从另一类中减去，下同；否则不能减去
-              multiRowType = rr['typeA'] if len(bRows) == 1 else rr['typeB']
-              oneRowNum = aRows.pop() if len(aRows) == 1 else bRows.pop()
-              ARChanged |= self.addRules(
-                {'class': 'RC', 'types': [multiRowType], 'param': ['-r'+ oneRowNum]}
-              )
-
-            if len(aCols) == 1 ^ len(bCols) == 1:
-              multiColType = rr['typeA'] if len(bCols) == 1 else rr['typeB']
-              oneColNum = aCols.pop() if len(aRows) == 1 else bCols.pop()
-              ARChanged |= self.addRules(
-                {'class': 'RC', 'types': [multiColType], 'param': ['-c'+ oneColNum]}
-              )
-            
-            self.logger.addLog([{'op': 'checkSingleMultiRC'}] * 2)
-          
-          else:
-            raise(RuntimeError('Invalid Rule'))
+    else: #种类分支
+      raise(RuntimeError('Invalid Rule'))

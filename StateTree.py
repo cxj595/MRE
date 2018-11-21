@@ -7,6 +7,7 @@
 # import matplotlib.pyplot as plt
 
 from Map import Map
+from RuleLibrary import RuleLib
 from itertools import combinations
 import copy
 import misc
@@ -66,6 +67,7 @@ class StateNode(object):
 	def outputRusult(self, solutionOrder=0):
 		print('-'*10 + 'Solution' + str(solutionOrder) + '-'*10)
 		self.map.outputMap()
+		print('Branch ID: ' + str(self.id))
 		print('\nTEC: ' + "%.3f" % TEC.BaseTEC(self.logger.log))
 		print('\n')
 
@@ -93,8 +95,17 @@ class StateTree(object):
 		'''
 
 		# Genernate full-comb of branch subsets as [subset_1, ...]
-		branchSets = list(combinations(toSelect, amount))
-		currentNode.logger.addLog([
+
+		mustSelect = toSelect # is a set
+		for arValue in currentNode.ruleLib.AR.value(): # 此时的AR已经删除了ARType
+			mustSelect -= arValue['possibleSet']
+		toSelect -= mustSelect
+
+		branchSets = list(combinations(toSelect, amount)) # is list of tuples
+		for i in range(len(branchSets)):
+			branchSets[i] += tuple(mustSelect)
+
+		currentNode.logger.addLog([ 
 			{'op': 'createBranch'},
 			{'op': 'selectCombtoTry'}
 			])
