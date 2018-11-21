@@ -22,7 +22,7 @@ class Test_Node(object):
     ]
     root.ruleLib.addRules(addedRules)
     
-    assert root.id == []
+    assert root.id == [0]
     assert root.parent == None
     assert root.children == []
     assert root.ruleLib.AR['panda']['possibleSet'] == set(RuleLib.AR_TABLE['floor2'])
