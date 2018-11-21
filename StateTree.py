@@ -51,7 +51,7 @@ class StateNode(object):
 
 
 
-	def __init__(self, stateMap, ruleLib, stateID=[0], stateLogger=logger(), parent=None):
+	def __init__(self, stateMap, ruleLib, stateLogger, stateID=[0], parent=None):
 		self.map = stateMap
 		self.ruleLib = ruleLib
 		self.id = stateID

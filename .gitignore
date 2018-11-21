@@ -110,3 +110,5 @@ venv.bak/
 MRE.pyproj
 MRE.sln
 MRE.pyproj
+*.synctex
+*.aux
