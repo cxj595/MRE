@@ -83,7 +83,7 @@ class Test_Tree(object):
     root = StateNode(stateMap = m, ruleLib = RL)
 
     addedRules = [
-      {'class': 'RFloor', 'types': ['tiger', 'cat'], 'param': [1]},
+      {'class': 'RFloor', 'types': ['tiger', 'cat'], 'param': 'higher'},
       {'class': 'RC', 'types': ['lion'], 'param': ['-orange', '-strawberry']},
       {'class': 'RC', 'types': ['panda'], 'param': ['-pineapple', '-apple']},
       {'class': 'RC', 'types': ['tiger'], 'param': ['-apple', '-strawberry']}
@@ -107,9 +107,9 @@ class Test_Tree(object):
     root = StateNode(stateMap = m, ruleLib = RL)
 
     addedRules = [
-      {'class': 'Adjacnet', 'types': ['lion', 'monkey']},
-      {'class': 'Adjacnet', 'types': ['elephant', 'hippo']},
-      {'class': 'Adjacnet', 'types': ['panda', 'tiger']},
+      {'class': 'Adjacent', 'types': ['lion', 'monkey'], 'param': 'positive'},
+      {'class': 'Adjacent', 'types': ['elephant', 'hippo'], 'param': 'positive'},
+      {'class': 'Adjacent', 'types': ['panda', 'tiger'], 'param': 'positive'},
       {'class': 'AFloor', 'types': ['lion'], 'param': ['floor2']},
       {'class': 'RC', 'types': ['panda'], 'param': ['-banana']},
       {'class': 'RC', 'types': ['elephant'], 'param': ['-lemon']},

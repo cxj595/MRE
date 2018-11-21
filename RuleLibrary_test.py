@@ -54,13 +54,13 @@ def test_RelativeRules():
   RL.logger = StateTree.StateNode.logger()
   
   addedRules = [
-    {'class': 'RFloor', 'types':['tiger', 'panda'], 'param': -1},
+    {'class': 'RFloor', 'types':['tiger', 'panda'], 'param': 'higher'},
     {'class': 'SameRC', 'types':['panda', 'hippo'], 'param': 'positive'},
   ]
   RL.addRules(addedRules)
   expectForRight = [
-    {'class': 'RFloor', 'typeA': 'tiger', 'typeB': 'panda', 'param': -1},
-    {'class': 'SameRC', 'typeA': 'panda', 'typeB': 'hippo', 'param': True},
+    {'class': 'RFloor', 'typeA': 'tiger', 'typeB': 'panda', 'param': 'higher'},
+    {'class': 'SameRC', 'typeA': 'panda', 'typeB': 'hippo', 'param': 'positive'},
   ]
 
   assert expectForRight == RL.RR

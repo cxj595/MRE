@@ -50,7 +50,7 @@ class StateNode(object):
 
 
 
-	def __init__(self, stateMap, ruleLib, stateID=[], stateLogger=logger(), parent=None):
+	def __init__(self, stateMap, ruleLib, stateID=[0], stateLogger=logger(), parent=None):
 		self.map = stateMap
 		self.ruleLib = ruleLib
 		self.id = stateID
@@ -103,14 +103,15 @@ class StateTree(object):
 			sn = StateNode(
 				stateMap = copy.deepcopy(currentNode.map), 
 				ruleLib = copy.deepcopy(currentNode.ruleLib),
-				stateID = currentNode.id.append(i), 
+				stateID = currentNode.id + [i], 
 				stateLogger = copy.deepcopy(currentNode.logger),
 				parent = currentNode
 				)  # 建节点，note：id里包含了次序, 子类logger自动迁移
 			sn.logger.base *= math.sqrt(misc.comb(len(toSelect), amount)) # 假设以人的智慧，需要试探的次数期望为sqrt(可能情形)，可以用之后的每一步操作*能量倍数s近似估计耗费的能量
+			sn.map.implement(ARType, branchSets.pop())  # 写地图
+			currentNode.children.append(sn)  # 加子节点
 
-		sn.map.implement(ARType, branchSets.pop())  # 写地图
-		currentNode.children.append(sn)  # 加子节点
+
 
 	def implementAR(self, targetNode, ARType):
 		'''
@@ -122,8 +123,9 @@ class StateTree(object):
 		applyingAR = targetNode.ruleLib.AR[ARType]
 		toSelect = applyingAR['possibleSet'] & targetNode.map.getEmpty()
 		targetNode.logger.addLog([{'op': 'getSizeofAR'}])
+		applyingAmount = applyingAR['amount']
 
-		if applyingAR['possibleSet'] == toSelect:  # CAR
+		if applyingAmount == len(toSelect):  # CAR
 			targetNode.map.implement(ARType, toSelect)
 			targetNode.logger.addLog([{
 				'op': 'clearOccupiedGrids', 
@@ -136,12 +138,12 @@ class StateTree(object):
 				targetNode.solved = True
 			return [targetNode]
 
-		elif applyingAR['possibleSet'] < toSelect:  # UAR
-			animalAmount = applyingAR['amount']
-			self.addStateChilds(targetNode, toSelect, ARType, animalAmount)
+		elif applyingAmount < len(toSelect):  # UAR
+			targetNode.ruleLib.AR.pop(ARType)  # 删除分类讨论过的AR
+			self.addStateChilds(targetNode, toSelect, ARType, applyingAmount)
 			return targetNode.children
 		else:  # Grids not enough <=> no solution
-			targetNode.state = None
+			return []
 
 	def solve(self):
 		possibleStateQueue = Queue()
