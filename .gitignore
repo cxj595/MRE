@@ -112,3 +112,7 @@ MRE.sln
 MRE.pyproj
 *.synctex
 *.aux
+Paper/paper.synctex(busy)
+Paper/paper.toc
+Paper/paper.synctex(busy)
+Paper/paper.toc
