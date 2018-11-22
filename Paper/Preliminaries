@@ -1,0 +1,36 @@
+\section{Preliminaries}
+\subsection{Defination: Self-information}
+In information theory, self-information, or information content of a random variable or signal is the amount of information gained when it is sampled. Formally, information content is a random variable defined for any event in probability theory regardless of whether a random variable is being measured or not. For an event of non-trival probality, its self-information is
+\begin{equation}
+I(E) = -\log_{2}{Pr(E)}
+\end{equation}
+where $Pr(E)$ is the probability of this event.
+\subsection{Defination: entropy}
+Entropy(Information Theory), i.e. information entropy, is the mathemetical expectation of self-infromation. is the average rate at which information is produced by a stochastic source of data. \cite{shannon1948mathematical} In case of countable events, the entropy is
+\begin{equation}
+H(X)=E(I(X))=\sum\limits_{i=1}^{n}{P(x)I({{x}_{i}}})=-\sum\limits_{i=1}^{n}{P({{x}_{i}}){{\log }_{b}}P({{x}_{i}})}
+\end{equation}
+\subsection{Defination: conditional entropy}
+the conditional entropy (or equivocation) quantifies the amount of information needed to describe the outcome of a random variable $Y$ given that the value of another random variable $X$ is known. In this case,
+\begin{equation}
+H(Y|X=x)=E[I(Y)|X=x]=-\sum\limits_{i=1}^{n}{\Pr (Y={{y}_{i}}}|X=x){{\log }_{2}}\Pr (Y={{y}_{i}}|X=x)
+\end{equation}
+$H(Y|X)$ is the result of averaging $H(Y|X=x)$over all possible values $x$ that $X$ may take. Considering the $X$ and $Y$ as discreate random veriables and using $p(x)$ representing the possibility of $X=x$, the conditional entropy can be represented as
+\begin{equation}%%%%%%%%%%%%%%%%
+H(Y|X) = -\sum{x,y}{p(x,y)*\log{2}{\frac{p(x,y)}{p(x)}}}
+\end{equation}
+
+\subsection{Defination: Abusolute Rule}
+Certain Abusolute Rule.The rule,which only mentions one kind of animal and the number of it,at the same time,describes what the animal need to obey.It makes the animal be placed in the unique position of the sudoku.That is to say,there is only one possibility to place the animals mentioned.
+\\
+
+Uncertain Abusolute Rule.The rule describes one kind of animal and its number. It also limits the position of the animal,but the position isn't unique.There are at least two possibilities to place the animal.
+\subsection{Defination: Relative Rule}
+Relative Rule describes the position relationship between two kinds of animals.It reveals a condition that the animals' position need to meet.But it can't give the exclusive position of the animals.
+\subsection{Defination: Rule Network / Rule Library}
+Rule Network / Rule Library,which is similar to a set,is used to store the rules while fetching rules one by one.what's more,combine and simplify two rules  into a new rule.The new rule describes less possible position of the mentioned animal.All are done in the set.And there is some kind connection between two rules above,which means they mention the same animals or the animals mentioned occupy the same cell.
+\subsection{Defination: Thinking Energy Cost}
+ People can't think without energy.In our model,every operation simulates human thinking,so it takes energy to perform a step operation.And the energy is named as Thinking Energy Cost.
+\subsection{Defination: Status}
+After an operation,the map is updated with some animals in the fixed cells and the Rule Network / Rule Library is also updated by getting rid of some rules that have been processed and  getting some merged rules,which means they form a Status together.
+
