@@ -1,0 +1,242 @@
+%MCM H207 陈相军 唐丽娟 谢昊彤
+\documentclass[12pt,a4paper,]{article}
+\title{MCM}
+\date{}
+\usepackage{geometry}
+\usepackage{float}
+ \usepackage{enumerate}
+\usepackage{palatino}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\begin{document}
+%\renewcommand{\baselinestretch}{1.5}
+\maketitle
+
+\begin{abstract}
+\renewcommand{\baselinestretch}{1.0}
+Gaming is the nature of human being, the source of creativity, and the drive to develope childs' thinking power. Thus how to design a proper puzzle providing both flexibility and challenge is a significant issue for game disigners. Especially in this fast-paced digital age, how to bring computer-aided workflow to puzzle design is having an increasingly importance. 
+Targeted on this "Wonder Island" Game, we invent a Model driven by Rule Engine ("MRE") to automaticly evaluate difficulty and solving those kind of generalized Sudoku games, which implement information theory and complexity thory to analyze the gaming status and efficiently. Then we've run some test cases bringing by our own to verify its high performance, including evaluaing and solving more complex games having more grids. 
+To bring it to the next level, we modify the MRE to suit more flexible rubrics, even more dimensions and invent a brand new puzzle game " " that is similar to Sudoku, but working in 3 dimensions. It's suppoed to develope childs' both logical inferance and spatial imagination. Moreover, we've done a literal groundbreaking job to implement MRE reversly to aid puzzle designing process and even design new game levels on its own. After Turing-like tests, they was proved similar to thus designed by human designers, of which is described in detail in the non-technical report. 
+
+In gerneral, the main contribution of our original work is:
+
+Implementing a set of concepts in informaion theory to promote the MRE choosing logic, incluing self-information, entropy, and conditional entropy.
+Inventing the concept of "thinking energy" to link the solving difficulty and computing complxity, then using the latter one (with some modification to simulate and represent how real brain works) to help modeling the difficulty of puzzles.
+
+Inspired by the solution of Sudoku, applying the Brute-force and backtracing algorithm powered with our puzzle-oriented pruning strategy to solve the puzzle automaticly, meanwhile accumulating the "thinking power" to evaluate the difficulties.
+
+Introducing the term "Absolute Rule" and "Relative Rule" to divide rules in 2 parts by its property, and inventing an engine (the Rule Engine) to tranform and simplify the rules repeatedly, which could prune in high efficience. 
+Using the MRE both in the normal way to evaluate and reverse way to create new game levels.
+
+ 
+\end{abstract}
+
+%\begin{keywords}
+% 写关键词
+%***
+%\end{keywords}
+\newpage
+
+\tableofcontents
+
+\newpage
+\renewcommand{\baselinestretch}{1.5}
+\section{Restatements}
+There are kinds of games in our life. Through the game, we can learn a lot. When we disign a game, we also need a lot of knowledge from varieties of subjects.  There is a kind of game for children whose age is over 6 which is called "Wonder Island", which is aimed at training the sense of permutation and combination, spatial position and neighboring relations, logic reasoning, etc.  There are 9 kinds of animals which include an elephant , a monkey, a pig, a tiger, a cat, a turtle, two hippos, 3 lions, and 5 pandas.  There are also some fruits in this game, 3 fruits( Apple, Mango, Orange)  represent the vertical axis another three fruits (Pineapple, Banana and Strawberry) represent horizontal axis. For each level, there are different rules for some of 9 animals and 6 fruits. Through these rules, the children should find out the location of each animal on this " Wonder Island"  which is a kind of 3 x 3 squares. And there are three problems we need to solve.
+
+\begin{enumerate}[(1)]
+\item The difficulty of this game is gradually increasing with the level. What needing to do is to design a mathematical model to measure the difficulty of each level of this game, and evaluate the rationality of the model.
+
+\item In each level, there are some restrictions which can be used to determining the location of each animal. Now what should be done is to establish a model to find out the location of each animal by using those restrictions. Meanwhile, it also require to determine if this solution is unique.
+
+\item There should be more games like "Wonder Island", because they can use a samilar model. This problem ask to design a samilar model like "Wonder Island" based on the models in problem1 and 2. 
+\end{enumerate}
+\section{Problem Anslysis}
+The principles of this game is similar to the principle of Sudoku and Rubik's Cube, so we can use some principles which similar to Sudoku and Rubik's Cube to solve the problems. This kind of game can be easily solved by mechine learning. However, the conditions in the game are variety and there are only a little level to let the meachine learn and the data is not universal, there must be a lot errors when using mechine learning.  When using some principles like Sudoku and Rubik's Cube to solve each level, efficiency will be greatly improved, and the turnover rate will be reduced. Meanwhile, from those methods, we can simulate the child's problem-solving thinking and to optimize the models.
+
+\subsection{Analysis of Problem 1}
+
+This problem requires us to develop a mathematical model to evaluate the difficulty of the game from each level. What we need to do is to analyze the limitation factor from the listed levels and we can analyze the quantity and the complexity of the steps to solve the problem. Whenever we take a step, the complexity of the game will drop with our steps. We can use entropy to represent this complexity. Whenever one step is taken, the corresponding entropy will decrease, and when the problem is solved, the entropy value will become 0.  The value of entropy is determined by the complexity of the game, so we can use entropy to assess the complexity of the game. The calculation of entropy is also determined by the constraints of the game, the type and quantity of animals, etc. Therefore, we can using computer to establish a kind of model about entropy to solve problem 1.
+
+\subsection{Analysis of Problem 2}
+This problem requires to solve the problems in the game by a model and only using the limitation factors that were listed in the game. To pass the game with the model, we can simulate Sudoku's problem solving process for they have similarities. When solving the Sudoku's problem, we always use back tracking method which is a kind of search algorithm.  The back tracking method can easily search the conditions and the location of each animal. It is like the algorithm of depth-first-search, which search step-by-step,and if there is a step that does not satisfy the conditions, abandoning this node and select another node to searching again. When abandoning a node, just like the tree  reduce one branch and the chances of finding solution will be greatly improved. And when we using this algorithm, the effectiveness to pass the game will  be improved. To know if the solution for this level is unique, what we need to do is regard each possible location as head node and using the algorithm of back tracking method to searching each possible solution. 
+
+\subsection{Analysis of Problem 3}
+Designing games are based on good algorithms and great models which requires developers to have a good algorithm base and modeling capabilities. However, we have already well prepared for desigining games like "Wonder Island", because we have established models and given optimized algorithms in problem 1 and 2, and we can use those models and algorithms to design a game like "Wonder Island" which can produce levels automatically and the difficulty of each level will increase by the level-and-level. The game what we designed will  increase difficulty when the levels rising and it will  improve the ability to develop children's intelligence. 
+
+\section{Variable Description and Nouns Interpretation}
+
+\subsection{Variable Description}
+%table
+\begin{tabular}{|c|c|}% 通过添加 | 来表示是否需要绘制竖线
+\hline  % 在表格最上方绘制横线
+Variable&Description\\
+\hline  %在第一行和第二行之间绘制横线
+$I(E)$ & Self-information about an event of non-trival probality\\
+\hline % 在表格最下方绘制横线
+$Pr(E)$ & Probabilty of an event\\
+\hline
+$H(X)$ & Entropy(Information Theory)\\
+\hline
+$E(X)$ & the mathematical expectation\\
+\hline
+\end{tabular}
+\subsection{Nouns Interpretation}
+\begin{enumerate}[(1)]
+\item Self-information: the amount of information obtained during sampling
+\item Entropy: the mathemetical expectation of self-information
+\item Conditional Entropy: the entropy of a random variable Y based on the value of another random variable X is known
+\item Abusolute Rule: describe the position of a kind of animal 
+\item Relative Rule: describe the position relationship between the two animal
+\item Rule Network / Rule Library: the set to store the "map" and all the rules including existing rules and updated rules 
+\item Thinking Energy Cost: the energy required to perform each operation
+\item Status: the combination of the updated "map" and the updated Rule Network / Rule Library
+%\item
+
+\end{enumerate}
+\section{Model Assumption}
+\begin{enumerate}[(1)]
+\item Considering the benefit of the whole solving process, Certian Absolute Rules, whether they'll derive the most entropy decrease, has the highest priorities.
+\item People's thinking pattern is parallel rather than serial, we put this point into consideration while determining the complexity and the Thinking Energy Cost of each step in problem solving. 
+\end{enumerate}
+
+
+\section{Preliminaries}
+\subsection{Defination: Self-information}
+In information theory, self-information, or information content of a random variable or signal is the amount of information gained when it is sampled. Formally, information content is a random variable defined for any event in probability theory regardless of whether a random variable is being measured or not. For an event of non-trival probality, its self-information is
+\begin{equation}
+I(E) = -\log_{2}{Pr(E)}
+\end{equation} 
+where $Pr(E)$ is the probability of this event.
+\subsection{Defination: entropy}
+Entropy(Information Theory), i.e. information entropy, is the mathemetical expectation of self-infromation. is the average rate at which information is produced by a stochastic source of data. \cite{Shannon} In case of countable events, the entropy is 
+\begin{equation}
+H(X)=E(I(X))=\sum\limits_{i=1}^{n}{P(x)I({{x}_{i}}})=-\sum\limits_{i=1}^{n}{P({{x}_{i}}){{\log }_{b}}P({{x}_{i}})}
+\end{equation}
+\subsection{Defination: conditional entropy}
+the conditional entropy (or equivocation) quantifies the amount of information needed to describe the outcome of a random variable $Y$ given that the value of another random variable $X$ is known. In this case, 
+\begin{equation}
+H(Y|X=x)=E[I(Y)|X=x]=-\sum\limits_{i=1}^{n}{\Pr (Y={{y}_{i}}}|X=x){{\log }_{2}}\Pr (Y={{y}_{i}}|X=x)
+\end{equation}
+$H(Y|X)$ is the result of averaging $H(Y|X=x)$over all possible values $x$ that $X$ may take. Considering the $X$ and $Y$ as discreate random veriables and using $p(x)$ representing the possibility of $X=x$, the conditional entropy can be represented as
+\begin{equation}%%%%%%%%%%%%%%%%
+H(Y|X) = -\sum{x,y}{p(x,y)*\log{2}{\frac{p(x,y)}{p(x)}}}
+\end{equation}
+
+\subsection{Defination: Abusolute Rule}
+Certain Abusolute Rule.The rule,which only mentions one kind of animal and the number of it,at the same time,describes what the animal need to obey.It makes the animal be placed in the unique position of the sudoku.That is to say,there is only one possibility to place the animals mentioned.
+\\
+
+Uncertain Abusolute Rule.The rule describes one kind of animal and its number. It also limits the position of the animal,but the position isn't unique.There are at least two possibilities to place the animal.
+\subsection{Defination: Relative Rule}
+Relative Rule describes the position relationship between two kinds of animals.It reveals a condition that the animals' position need to meet.But it can't give the exclusive position of the animals.
+\subsection{Defination: Rule Network / Rule Library}
+Rule Network / Rule Library,which is similar to a set,is used to store the rules while fetching rules one by one.what's more,combine and simplify two rules  into a new rule.The new rule describes less possible position of the mentioned animal.All are done in the set.And there is some kind connection between two rules above,which means they mention the same animals or the animals mentioned occupy the same cell.
+\subsection{Defination: Thinking Energy Cost}
+ People can't think without energy.In our model,every operation simulates human thinking,so it takes energy to perform a step operation.And the energy is named as Thinking Energy Cost.
+\subsection{Defination: Status}
+After an operation,the map is updated with some animals in the fixed cells and the Rule Network / Rule Library is also updated by getting rid of some rules that have been processed and  getting some merged rules,which means they form a Status together.
+
+
+\section{Modeling and Solving}
+\subsection{Overview}
+In this part, we are going to briefly describe how to model puzzle solving and measure the difficulty of game levels using the our model called MRE to solve Problem I and Problem II. 
+~\\
+
+When solving the Sudoku-like puzzles, such as this "Wonder Island" game, the basic but reasonable thinking pattern is that:
+\begin{enumerate}[(1)]
+\item To simplify existing rules with the relationship and constraint of rules;
+\item To choose the rule that could contribute solving the most;
+\item To implement this rule and update the "map";
+\end{enumerate}
+%%%%%%%%%%记得给公式设置\label
+When step 2 could lead to a certain status, to go to step 1 until problem solved;
+
+When step 2 couldn't lead to a certain status, to make each possible assumption as a new status "branch", and go to step 1 trying to solve this branch until puzzle solved or proved self-contradictory. 
+
+Going through the whole pattern, we found that it could be reflected as a backtracing algorithm, and the step 1 and step 2 mostly infer one's "intellegence" with the main obstacles lying in. Therefore, the key point of the MRE is to measure the complication for human in step 1 and step 2(In addition, we should also consider the difference of human thinking and algorithm running) , and let our algorithm simplify rules then choose best rules accordingly. We implement the concepts including conditional entropy, Thinking Energy Cost, and Rule Engine that is described in detail at \ref{ModelDetails}. 
+
+Based on our assumptions, we are safe but not certain to say the MRE could carry out the best move and accumulate the least complication of those moves, which represents it would apply the smartest strategy. The sum of least complication in every step could be the least complication globally as a strongly reasonale indicator to measure the difficulty of every game level. Thus with solving and accumulating runs simultaneously, the MRE accomplish Problem 1 and Problem 2 at once. 
+
+The whole working precess of the MRE is illustrated below. In the next sections of this chapter, we'll discuss about simplifying the Rule Library in \ref{Pruning}, rule choosing logic in \ref{ChoosingRule}, TEC Calculation details in {CalcTEC}, and how to extend and use this model to solve Problem III in \ref{ModelExtend}.
+\ref{fig:flow-process diagram}
+\begin{figure}[htb]
+	\centering 
+	\includegraphics[width=0.7\linewidth]{process}
+	\caption{flow-process diagram} 
+	\label{fig:flow-process diagram} 
+\end{figure}
+
+\subsection{Analisis and Modeling of Problem 1}
+
+\subsection{Analisis and Modeling of Problem 2}
+
+\subsection{Analisis and Modeling of Problem 3}
+"Boom boom boom" A war is taking place in this country. There are twelve family including 1 Zhao, 1 Qian, 3 Sun, 3 Li, 3 Zhou, 3 Wu, 3 Zheng, 5 Wang, 5 Feng, 5 Tang and they need to escape from the battle to three safe areas, called Sum, Moon, Start, with six blocks numbered from 1 to 6 and every block only have three seats named a, b, c. Now we abstract the location of the areas and their blocks into a three dimensional cube. Every layer represents a safe area. Every row and column on each layer respectively represent a block.  And every cell means a seat which can accommodate one person. Here are some examples of rules which have various combination in each level that the position of the family must obey.
+Rules:
+\begin{itemize}
+\item[*] The Sun can / can't be located on No.3 block of the Sum area(or the combination of the blocks in the same area).
+\item[*] The Li can / can't be located on a face diagonal / layer diagonal.
+\item[*] The Zhou can / can't be located on the diagonal.
+\item[*] The Wu can / can't be located on Seat a of one seat / layer / the cube.
+\item[*] The Zhao is / isn't close to The Qian(in our game, a close seat of one seat have six choices at most, four in the same layer, one at the top layer, and one at the bottom layer).
+\item[*] The Feng is at the top / bottom of The Wu.
+\item[*] Then the player can input some family and different combinations of rules above using the family into our model, and it can work out the solution(s) automatically. At the same time, our model will evaluate difficulty and judge whether has a solution or sevaral solutions.
+\end{itemize}
+\section{Strengths and weaknesses}
+\subsection{Strengths}
+\begin{enumerate}[(1)]
+\item We're introduce the concept of the entropy. At the same time, use it and operate it to measure whether there exist solution(s). 
+\item We simulate the behavior of the human thinking. After every operation, we put  some correlative energy to update the status and record it.
+\item We put all the rules to the set, simplify rules and update them. 
+\end{enumerate}
+\subsection{Weaknesses}
+\begin{enumerate}[(1)]
+\item Because we simulate the human thinking, and we don't find out reliable references how much energy cost while thinking. So we can't conclude an exact of the energy expended.
+\item As for model verification, we have searched all the detailed introduction about "Wonder Island" on TaoBao and collected different levels.What's more, we even create some self-created levels to verify our model. But the number of validation is still limited.
+\end{enumerate}
+
+\section{Memo}
+Nowadays, more and more parents become interested in puzzle games. At the same time, parents tend to develop intellectual development earlier for children. So we need to build a model to scientifically measure the difficulty of each level of puzzle games. After analyzing some levels of a puzzle game named “Wonder Island”, we build a model with some mathematical methods and some theory of information theory in order to determine if there exists a solution(s) in a level and evaluate the difficulty of the levels in the “Wonder Island” precisely. According to our model, you can also design a puzzle game that also has the intellectual function of development.
+In the first place, we use the entropy in Shannon’s information theory to record the possibilities that exist after reading and updating rules. It is also an indicator of whether there is a solution and whether the solution is unique. If at last the entropy turn to zero, it means there is a solution. But if there exist more than one way to make it, it means the level has many solutions. When we have read and updated all rules, the entropy still can’t sub to zero, which means there isn’t a solution.
+After that, we think like a human brain thinks that every operation consumes some energy. We’d like to consider energy consumption is a constant and sort them. As for their order of magnitude, they should have been assigned to several orders of magnitude, but after our research, up to two orders of magnitude, from 1 to 99. For the energy function with parameters, we assume that the form of the parameters in the function is polynomial, taking all of their parameters as 1 and treating them as constants, thus determining all the weights. At the same time, we draw on the three-point time estimation method in the PERT estimation method, use the fast row to obtain the weight, and then use the fitting to make the data stable. Because a series of work, we can get energy formulas for various rules.
+Then, Using python to write programs to verify energy formulas and our model, we find some difficulty estimates that do not match the actual. Hence, we adjust our presumptions and revise our model.
+Finally, we highly recommend that every puzzle game has a suitable difficulty. Let the children be interested in brainstorming, at the same time, let the children add confidence according to work out solution(s).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{thebibliography}{}
+\bibitem  Shannon, the mathematical principle of information, Reprinted with corrections from The Bell System Technical Journal, Vol. 27, pp. 379–423, 623–656, July, October, 1948.
+\bibitem Robert B. Ash. Information Theory. New York: Interscience, 1965. ISBN 0-470-03445-9. New York: Dover 1990. ISBN 0-486-66521-6, p. v
+\bibitem  Han, Te Sun \& Kobayashi, Kingo (2002). Mathematics of Information and Coding. American Mathematical Society. ISBN 978-0-8218-4256-0.
+\bibitem  Project Management Institute. A Guide To The Project Management Body Of Knowledge 3rd ed. Project Management Institute. 2003. ISBN 1-930699-45-X
+\bibitem Program Evaluation and Review Technique https://zh.wikipedia.org/wiki/\%E8\%A8\%88\%E7\%95\%AB\%E8\%A9\%95\%E6\%A0\%B8\%E8\%A1\%93
+
+\end{thebibliography}
+
+\end{document}
+
